@@ -28,6 +28,25 @@ export default class EntryAbility extends UIAbility {
         return;
       }
       hilog.info(DOMAIN, 'testTag', 'Succeeded in loading the content.');
+
+      // 配置沉浸式效果：内容延伸到系统栏，并设置系统栏样式
+      let mainWindow: window.Window | null = windowStage.getMainWindowSync();
+      if (mainWindow !== null) {
+        try {
+          // 允许窗口内容延伸到状态栏和导航栏区域
+          mainWindow.setWindowLayoutFullScreen(true);
+
+          // 使用新接口配置系统栏（旧的 setSystemBarProperties 已废弃）
+          mainWindow.setWindowSystemBarProperties({
+            statusBarColor: '#00000000',
+            statusBarContentColor: '#FF000000',
+            navigationBarColor: '#00000000',
+            navigationBarContentColor: '#FF000000'
+          });
+        } catch (e) {
+          hilog.error(DOMAIN, 'testTag', 'Failed to set immersive window props: %{public}s', JSON.stringify(e));
+        }
+      }
     });
   }
 
