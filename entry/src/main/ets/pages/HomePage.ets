@@ -1,21 +1,26 @@
 import type { PostBriefItemData } from '../common/network';
 import { PostListViewModel } from '../viewmodel/PostListViewModel';
+import type { PostDetailRouteParams } from './PostDetailPage';
+
 
 @ComponentV2
 export struct HomePage {
+  private pathStack: NavPathStack = new NavPathStack();
   @Local vm: PostListViewModel = new PostListViewModel();
 
   aboutToAppear(): void {
+    // 通过 queryNavigationInfo 查询当前 Navigation 的 NavPathStack
+    let navigationInfo: NavigationInfo = this.queryNavigationInfo() as NavigationInfo;
+    if (navigationInfo !== undefined) {
+      this.pathStack = navigationInfo.pathStack;
+    }
+
     this.vm.loadFirstPage();
   }
 
   @Builder
   private buildHeader(): void {
     Column() {
-      // 顶部安全区域占位
-      Blank()
-        .height(12)
-
       Row() {
         Blank()
           .width(24)
@@ -92,14 +97,9 @@ export struct HomePage {
       offsetY: 2
     })
     .onClick(() => {
-      // 跳转到帖子详情路由页面，携带帖子 ID，详情页自行拉取完整信息
-      let router = this.getUIContext().getRouter();
-      router.pushUrl({
-        url: 'pages/PostDetailPage',
-        params: {
-          id: item.id
-        }
-      });
+      // 使用 Navigation 的 NavPathStack 跳转到帖子详情页面
+      let param: PostDetailRouteParams = { id: item.id };
+      this.pathStack.pushPathByName('PostDetailPage', param);
     })
   }
 
@@ -226,8 +226,8 @@ export struct HomePage {
       .layoutWeight(1)
     }
     .backgroundColor(0xF5F5F5)
-    .height('100%')
     .width('100%')
+    .height(LayoutPolicy.matchParent)
   }
 }
 

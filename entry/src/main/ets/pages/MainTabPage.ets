@@ -2,6 +2,7 @@ import { HomePage } from './HomePage';
 import { DiscoverPage } from './DiscoverPage';
 import { MessagePage } from './MessagePage';
 import { ProfilePage } from './ProfilePage';
+import { windowUtil } from '../common/WindowUtil';
 
 @ComponentV2
 export struct MainTabPage {
@@ -37,7 +38,16 @@ export struct MainTabPage {
       })
     }
     .width('100%')
-    .height('100%')
+    .height(LayoutPolicy.matchParent)
+    // 组件层面做沉浸 + 避让：扩展到避让区，并按系统状态栏 / 导航条高度做 padding
+    .ignoreLayoutSafeArea()
+    .height(LayoutPolicy.matchParent)
+    .padding({
+      top: windowUtil.mainWindowInfo.avoidSystem !== undefined ?
+        windowUtil.mainWindowInfo.avoidSystem.topRect.height + 'px' : '0px',
+      bottom: windowUtil.mainWindowInfo.avoidNavigationIndicator !== undefined ?
+        windowUtil.mainWindowInfo.avoidNavigationIndicator.bottomRect.height + 'px' : '0px'
+    })
   }
 }
 

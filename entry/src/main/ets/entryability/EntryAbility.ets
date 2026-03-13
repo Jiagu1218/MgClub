@@ -1,6 +1,7 @@
 import { AbilityConstant, ConfigurationConstant, UIAbility, Want } from '@kit.AbilityKit';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { window } from '@kit.ArkUI';
+import { windowUtil } from '../common/WindowUtil';
 
 const DOMAIN = 0x0000;
 
@@ -43,6 +44,11 @@ export default class EntryAbility extends UIAbility {
             navigationBarColor: '#00000000',
             navigationBarContentColor: '#FF000000'
           });
+
+          // 初始化 WindowUtil，获取并监听避让区域，用于页面 padding 计算
+          windowUtil.setMainWindow(mainWindow);
+          windowUtil.initAvoidArea();
+          mainWindow.on('avoidAreaChange', windowUtil.onAvoidAreaChange);
         } catch (e) {
           hilog.error(DOMAIN, 'testTag', 'Failed to set immersive window props: %{public}s', JSON.stringify(e));
         }
