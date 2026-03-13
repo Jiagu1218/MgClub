@@ -21,11 +21,15 @@ struct Index {
           return undefined;
         }
 
+        let callbacks: AnimateCallback = CustomTransition.getInstance().getAnimateParam('PostDetailPage');
+        // 仅对帖子详情页使用自定义翻页动画，其他二级页（如登录页）使用系统默认
+        if (callbacks.start === undefined && callbacks.finish === undefined) {
+          return undefined;
+        }
+
         let animation: NavigationAnimatedTransition = {
           timeout: 1000,
           transition: (transitionProxy: NavigationTransitionProxy) => {
-            let callbacks: AnimateCallback = CustomTransition.getInstance().getAnimateParam('PostDetailPage');
-
             if (operation === NavigationOperation.PUSH) {
               if (callbacks.start !== undefined) {
                 callbacks.start(true, false);

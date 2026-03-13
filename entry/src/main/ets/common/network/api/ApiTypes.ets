@@ -172,15 +172,24 @@ export interface AddressItemData {
   isDefault: boolean;
 }
 
-/** 验证码 data */
+/** 验证码 data（来自 /auth/code） */
 export interface AuthCodeData {
-  key: string;
+  // 注意：后端字段名为 publicKey / privateKey，验证码区分大小写，前端不要改动大小写
+  publicKey: string;
+  privateKey: string;
   expireSeconds: number;
 }
 
-/** 校验验证码 data */
+/** 校验验证码 data（/auth/validate 返回结果的抽象） */
 export interface AuthValidateData {
+  // 是否校验通过（code === 0）
   validated: boolean;
+  // 以下字段仅在 code === 0 时有效，用于后续 /auth/validate-login
+  bind?: boolean;
+  platformUid?: number;
+  site?: string;
+  uid?: string;
+  auth?: string;
 }
 
 /** 登录/绑定返回 data */

@@ -460,7 +460,6 @@ const BASE_URL: string = 'https://2550505.com';
 
 /** 全局 RCP 客户端（内部使用） */
 const rcpClient: RcpClient = new RcpClient();
-
 /** Query 参数项，用于 GET 拼接 */
 export interface QueryParam {
   key: string;
@@ -484,7 +483,7 @@ function getOptions(): HttpPoolRequestOptions {
   return { method: http.RequestMethod.GET };
 }
 
-function postOptions(body: string): HttpPoolRequestOptions {
+function postOptions(body: object): HttpPoolRequestOptions {
   return {
     method: http.RequestMethod.POST,
     extraData: body
@@ -497,6 +496,9 @@ function buildRcpRequest(url: string, options: HttpPoolRequestOptions): rcp.Requ
     methodStr = 'POST';
   }
   let request: rcp.Request = new rcp.Request(url, methodStr);
+  if (methodStr == 'POST') {
+    request.content = options.extraData
+  }
   return request;
 }
 
@@ -1148,8 +1150,11 @@ export function getAuthCode(): Promise<AuthCodeData> {
         throw new Error('getAuthCode failed, code=' + String(resp.code));
       }
       let data: AuthCodeData = {
-        key: resp.publicKey,
-        expireSeconds: 0
+        // 注意：验证码区分大小写，这里保留服务端原始大小写
+        publicKey: resp.publicKey,
+        privateKey: resp.privateKey,
+        // 接口文档约定有效期为 300s
+        expireSeconds: 300
       };
       return data;
     }
@@ -1164,18 +1169,25 @@ export interface AuthValidateBody {
 
 /** 校验验证码（需在请求头携带 Hash，由调用方或拦截器处理） */
 export function postAuthValidate(body: AuthValidateBody): Promise<AuthValidateData> {
-  let bodyStr: string = JSON.stringify(body);
   return fetchJson<AuthValidateRawError | AuthValidateRawSuccess>(
     buildUrl('/auth/validate'),
-    postOptions(bodyStr)
+    postOptions(body)
   ).then((resp: AuthValidateRawError | AuthValidateRawSuccess) => {
-    let validated: boolean = false;
-    // code === 0 视为通过
-    if ((resp as AuthValidateRawError).code === 0) {
-      validated = true;
+    // code === 0 视为通过，此时 resp 结构为 AuthValidateRawSuccess
+    if ((resp as AuthValidateRawError).code !== 0) {
+      let data: AuthValidateData = {
+        validated: false
+      };
+      return data;
     }
+    let success: AuthValidateRawSuccess = resp as AuthValidateRawSuccess;
     let data: AuthValidateData = {
-      validated: validated
+      validated: true,
+      bind: success.bind,
+      platformUid: success.platformUid,
+      site: success.site,
+      uid: success.uid,
+      auth: success.auth
     };
     return data;
   });
@@ -1193,10 +1205,9 @@ export interface AuthValidateLoginBody {
 
 /** 三方登录校验 / 绑定（需在请求头携带 Hash） */
 export function postAuthValidateLogin(body: AuthValidateLoginBody): Promise<AuthLoginData> {
-  let bodyStr: string = JSON.stringify(body);
   return fetchJson<AuthLoginRawResponse>(
     buildUrl('/auth/validate-login'),
-    postOptions(bodyStr)
+    postOptions(body)
   ).then((resp: AuthLoginRawResponse) => {
     if (resp.code !== 0) {
       throw new Error('postAuthValidateLogin failed, code=' + String(resp.code));

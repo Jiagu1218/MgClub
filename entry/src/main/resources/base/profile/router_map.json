@@ -4,6 +4,11 @@
       "name": "PostDetailPage",
       "pageSourceFile": "src/main/ets/pages/PostDetailPage.ets",
       "buildFunction": "PostDetailPageBuilder"
+    },
+    {
+      "name": "LoginPage",
+      "pageSourceFile": "src/main/ets/pages/LoginPage.ets",
+      "buildFunction": "LoginPageBuilder"
     }
   ]
 }

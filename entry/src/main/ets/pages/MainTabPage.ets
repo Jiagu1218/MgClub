@@ -38,8 +38,7 @@ export struct MainTabPage {
       })
     }
     .width('100%')
-    .height(LayoutPolicy.matchParent)
-    // 组件层面做沉浸 + 避让：扩展到避让区，并按系统状态栏 / 导航条高度做 padding
+    // 沉浸 + 避让：扩展到避让区，按状态栏/底部导航条做 padding
     .ignoreLayoutSafeArea()
     .height(LayoutPolicy.matchParent)
     .padding({
