@@ -15,6 +15,7 @@ export interface LoginPageRouteParams {
 
 @ComponentV2
 struct LoginPage {
+  private pathStack: NavPathStack = new NavPathStack();
   // 0: 账号密码登录  1: 验证码登录
   @Local loginMode: number = 0;
   @Local account: string = '';
@@ -32,6 +33,14 @@ struct LoginPage {
   aboutToDisappear(): void {
     if (this.countdownTimer >= 0) {
       clearInterval(this.countdownTimer);
+    }
+  }
+
+  aboutToAppear(): void {
+    // 进入页面时，从 Navigation 查询 NavPathStack，用于登录成功后返回上一页
+    let navigationInfo: NavigationInfo = this.queryNavigationInfo() as NavigationInfo;
+    if (navigationInfo !== undefined) {
+      this.pathStack = navigationInfo.pathStack;
     }
   }
 
@@ -228,6 +237,8 @@ struct LoginPage {
                   // 登录成功：写入全局登录态与 Preferences（EntryAbility 中已初始化 Context）
                   let uidNum: number = loginData.uid;
                   authStore.saveLogin(loginData.token, uidNum);
+                  // 返回上一页（我的 Tab），触发 ProfilePage.aboutToAppear 重新加载用户信息
+                  this.pathStack.pop();
                   this.tipMessage = '登录成功，uid=' + String(uidNum);
                 })
                 .catch((error: Error) => {

@@ -1,6 +1,7 @@
 import type { PostBriefItemData } from '../common/network';
 import { PostListViewModel } from '../viewmodel/PostListViewModel';
 import type { PostDetailRouteParams } from './PostDetailPage';
+import { levelStore } from '../common/LevelStore';
 
 
 @ComponentV2
@@ -14,6 +15,9 @@ export struct HomePage {
     if (navigationInfo !== undefined) {
       this.pathStack = navigationInfo.pathStack;
     }
+
+    // 首页首次出现时初始化等级列表，用于后续“我的”页面展示等级信息
+    levelStore.init();
 
     this.vm.loadFirstPage();
   }

@@ -42,6 +42,12 @@ export interface UserInfoData {
   score: number;
   signature: string;
   createdAt: string;
+  // 以下字段用于“我的”页面展示
+  role?: number;
+  exp?: number;
+  contribution?: number;
+  sex?: number;
+  birthday?: number;
 }
 
 /** 用户积分 data */

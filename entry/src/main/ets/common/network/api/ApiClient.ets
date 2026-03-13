@@ -607,7 +607,12 @@ export function getUserInfo(): Promise<UserInfoData> {
         level: 0,
         score: raw.exp,
         signature: raw.sign,
-        createdAt: ''
+        createdAt: '',
+        role: raw.role,
+        exp: raw.exp,
+        contribution: raw.contribution,
+        sex: raw.sex,
+        birthday: raw.birthday
       };
       return data;
     }
