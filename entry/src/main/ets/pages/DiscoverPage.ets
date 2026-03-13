@@ -4,14 +4,22 @@ import type {
   ContributionRankItemData
 } from '../common/network';
 import { DiscoverViewModel } from '../viewmodel/DiscoverViewModel';
+import type { PostDetailRouteParams } from './PostDetailPage';
 
 @ComponentV2
 export struct DiscoverPage {
+  private pathStack: NavPathStack = new NavPathStack();
   @Local vm: DiscoverViewModel = new DiscoverViewModel();
 
   aboutToAppear(): void {
     // 默认加载周榜
     this.vm.loadRank('week');
+
+    // 通过 NavigationInfo 获取 NavPathStack，用于帖子搜索结果跳转详情页
+    let navigationInfo: NavigationInfo = this.queryNavigationInfo() as NavigationInfo;
+    if (navigationInfo !== undefined) {
+      this.pathStack = navigationInfo.pathStack;
+    }
   }
 
   @Builder
@@ -147,6 +155,10 @@ export struct DiscoverPage {
     .padding({ left: 16, right: 16, top: 10, bottom: 10 })
     .backgroundColor(Color.White)
     .borderRadius(10)
+    .onClick(() => {
+      let param: PostDetailRouteParams = { id: item.id };
+      this.pathStack.pushPathByName('PostDetailPage', param);
+    })
   }
 
   @Builder

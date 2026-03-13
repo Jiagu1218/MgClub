@@ -32,11 +32,12 @@ export struct ProfilePage {
     getUserInfo()
       .then((data: UserInfoData) => {
         this.userInfo = data;
-        // 计算等级显示：根据经验值在 levelStore 中查找
+        // 计算等级显示：根据经验值在 levelStore 中查找（同时展示 level 和 名称）
         if (data.exp !== undefined) {
           let lv: LevelItemData | undefined = levelStore.getLevelByScore(data.exp as number);
           if (lv !== undefined) {
-            this.currentLevelName = lv.name;
+            // 例如：Lv3 猛男日记
+            this.currentLevelName = 'Lv' + String(lv.level) + ' ' + lv.name;
           } else {
             this.currentLevelName = '';
           }
