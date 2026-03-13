@@ -7,6 +7,7 @@ import { http } from '@kit.NetworkKit';
 import { rcp } from '@kit.RemoteCommunicationKit';
 import { RcpClient } from '../RcpClient';
 import type { HttpPoolRequestOptions } from '../HttpPoolTypes';
+import { authStore } from '../../AuthStore';
 import type {
   ApiResponse,
   VersionData,
@@ -504,6 +505,12 @@ function buildRcpRequest(url: string, options: HttpPoolRequestOptions): rcp.Requ
 
 async function fetchJson<T>(url: string, options: HttpPoolRequestOptions): Promise<T> {
   let request: rcp.Request = buildRcpRequest(url, options);
+  // 如果已登录，则添加 cookie
+  if (authStore.isLoggedIn()) {
+    request.headers = {
+      'cookie': 'token=' + authStore.getToken()
+    }
+  }
   let res: T = await rcpClient.request<T>(request);
   return res;
 }

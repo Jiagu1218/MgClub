@@ -1,5 +1,6 @@
 import { windowUtil } from '../common/WindowUtil';
 import { getAuthCode, postAuthValidate, postAuthValidateLogin } from '../common/network';
+import { authStore } from '../common/AuthStore';
 import type {
   AuthCodeData,
   AuthValidateData,
@@ -224,8 +225,10 @@ struct LoginPage {
 
               postAuthValidateLogin(loginBody)
                 .then((loginData: AuthLoginData) => {
-                  // 这里可以把 token/uid 写入全局登录态或本地存储，当前先提示成功
-                  this.tipMessage = '登录成功，uid=' + String(loginData.uid);
+                  // 登录成功：写入全局登录态与 Preferences（EntryAbility 中已初始化 Context）
+                  let uidNum: number = loginData.uid;
+                  authStore.saveLogin(loginData.token, uidNum);
+                  this.tipMessage = '登录成功，uid=' + String(uidNum);
                 })
                 .catch((error: Error) => {
                   this.getUIContext().showAlertDialog({

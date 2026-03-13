@@ -2,6 +2,7 @@ import { AbilityConstant, ConfigurationConstant, UIAbility, Want } from '@kit.Ab
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { window } from '@kit.ArkUI';
 import { windowUtil } from '../common/WindowUtil';
+import { authStore } from '../common/AuthStore';
 
 const DOMAIN = 0x0000;
 
@@ -13,6 +14,8 @@ export default class EntryAbility extends UIAbility {
       hilog.error(DOMAIN, 'testTag', 'Failed to set colorMode. Cause: %{public}s', JSON.stringify(err));
     }
     hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onCreate');
+    // 初始化登录态（从 Preferences 读取 token / uid）
+    authStore.init(this.context);
   }
 
   onDestroy(): void {
