@@ -203,3 +203,24 @@ export interface PostSearchData {
   list: Array<PostSearchItemData>;
   nextId: number;
 }
+
+/** 帖子详情 data（包含正文、图片等） */
+export interface PostDetailData {
+  id: number;
+  title: string;
+  content: string;
+  author: UserBriefData;
+  pictures: Array<string>;
+  createdAt: string;
+  likeCount: number;
+  replyCount: number;
+  readings: number;
+}
+
+/** 帖子评论项 */
+export interface PostCommentItemData {
+  id: number;
+  user: UserBriefData;
+  content: string;
+  createdAt: string;
+}

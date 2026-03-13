@@ -91,6 +91,16 @@ export struct HomePage {
       offsetX: 0,
       offsetY: 2
     })
+    .onClick(() => {
+      // 跳转到帖子详情路由页面，携带帖子 ID
+      let router = this.getUIContext().getRouter();
+      router.pushUrl({
+        url: 'pages/PostDetailPage',
+        params: {
+          id: item.id
+        }
+      });
+    })
   }
 
   @Builder

@@ -21,6 +21,8 @@ import type {
   PostUserItemData,
   PostSearchData,
   PostSearchItemData,
+  PostDetailData,
+  PostCommentItemData,
   NoticeCountData,
   NoticeReplyItemData,
   SignSignedData,
@@ -280,6 +282,47 @@ interface PostUserListRawItem {
 interface PostUserListRawResponse {
   code: number;
   list: Array<PostUserListRawItem>;
+}
+
+interface PostDetailRaw {
+  id: number;
+  title: string;
+  content: string;
+  author: PostListBriefRawAuthor;
+  pictures: Array<string>;
+  post_time: string;
+  likes: number;
+  replies: number;
+  readings: number;
+}
+
+interface PostDetailRawResponse {
+  code: number;
+  data: PostDetailRaw;
+}
+
+interface PostCommentRawUser {
+  uid: number;
+  nickname: string;
+  avatar: string;
+  exp: number;
+  auth: number;
+  authentication: string;
+}
+
+interface PostCommentRawItem {
+  id: number;
+  user: PostCommentRawUser;
+  content: string;
+  time: string;
+}
+
+interface PostCommentRawResponse {
+  code: number;
+  list: Array<PostCommentRawItem>;
+  page: number;
+  pageSize: number;
+  total: number;
 }
 
 interface NoticeCountRawInner {
@@ -838,6 +881,77 @@ export function getPostUserList(uid: number, page: number, pageSize: number): Pr
       return result;
     }
   );
+}
+
+/** 帖子详情 */
+export async function getPostDetail(id: number): Promise<PostDetailData> {
+  let url: string = buildUrl('/post/detail', [{ key: 'id', value: id }]);
+  let resp: PostDetailRawResponse = await fetchJson<PostDetailRawResponse>(url, getOptions());
+  if (resp.code !== 0) {
+    throw new Error('getPostDetail failed, code=' + String(resp.code));
+  }
+  let raw: PostDetailRaw = resp.data;
+  let authorBrief: UserBriefData = {
+    uid: raw.author.uid,
+    nickname: raw.author.nickname,
+    avatar: raw.author.avatar,
+    level: 0
+  };
+  let data: PostDetailData = {
+    id: raw.id,
+    title: raw.title,
+    content: raw.content,
+    author: authorBrief,
+    pictures: raw.pictures,
+    createdAt: raw.post_time,
+    likeCount: raw.likes,
+    replyCount: raw.replies,
+    readings: raw.readings
+  };
+  return data;
+}
+
+/** 帖子评论列表 */
+export async function getPostCommentList(
+  id: number,
+  page: number,
+  pageSize: number
+): Promise<PagedListData<PostCommentItemData>> {
+  let params: Array<QueryParam> = [
+    { key: 'id', value: id },
+    { key: 'page', value: page },
+    { key: 'pageSize', value: pageSize }
+  ];
+  let url: string = buildUrl('/post/comment/list', params);
+  let resp: PostCommentRawResponse = await fetchJson<PostCommentRawResponse>(url, getOptions());
+  if (resp.code !== 0) {
+    throw new Error('getPostCommentList failed, code=' + String(resp.code));
+  }
+  let list: Array<PostCommentItemData> = [];
+  let i: number;
+  for (i = 0; i < resp.list.length; i++) {
+    let raw: PostCommentRawItem = resp.list[i];
+    let userBrief: UserBriefData = {
+      uid: raw.user.uid,
+      nickname: raw.user.nickname,
+      avatar: raw.user.avatar,
+      level: 0
+    };
+    let item: PostCommentItemData = {
+      id: raw.id,
+      user: userBrief,
+      content: raw.content,
+      createdAt: raw.time
+    };
+    list.push(item);
+  }
+  let result: PagedListData<PostCommentItemData> = {
+    list: list,
+    page: resp.page,
+    pageSize: resp.pageSize,
+    total: resp.total
+  };
+  return result;
 }
 
 // ---------- 八、通知 / 消息 ----------
