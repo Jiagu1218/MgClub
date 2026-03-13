@@ -284,45 +284,86 @@ interface PostUserListRawResponse {
   list: Array<PostUserListRawItem>;
 }
 
-interface PostDetailRaw {
-  id: number;
-  title: string;
-  content: string;
-  author: PostListBriefRawAuthor;
-  pictures: Array<string>;
-  post_time: string;
-  likes: number;
-  replies: number;
-  readings: number;
-}
-
-interface PostDetailRawResponse {
-  code: number;
-  data: PostDetailRaw;
-}
-
-interface PostCommentRawUser {
+interface PostCommentRawAuthor {
   uid: number;
   nickname: string;
   avatar: string;
   exp: number;
+  focusHe: boolean;
   auth: number;
   authentication: string;
+  isPostMaster: boolean;
 }
 
 interface PostCommentRawItem {
-  id: number;
-  user: PostCommentRawUser;
+  floorId: number;
+  floor: number;
+  isTop: boolean;
+  day: string | null;
   content: string;
+  hanserReply: boolean;
+  hanserLike: boolean;
+  location: string | null;
+  isp: string;
   time: string;
+  liked: boolean;
+  likes: number;
+  author: PostCommentRawAuthor;
+  replies: Array<object>;
 }
 
 interface PostCommentRawResponse {
   code: number;
-  list: Array<PostCommentRawItem>;
-  page: number;
-  pageSize: number;
+  postId: number;
   total: number;
+  topList: Array<object>;
+  list: Array<PostCommentRawItem>;
+}
+
+interface PostDetailRawAuthor {
+  uid: number;
+  nickname: string;
+  avatar: string;
+  role: number;
+  status: number;
+  exp: number;
+  auth: number;
+  authentication: string;
+  focusHe: boolean;
+}
+
+interface PostDetailRaw {
+  id: number;
+  title: string;
+  content: string;
+  type: number;
+  auth: number;
+  authentication: string;
+  post_time: string;
+  likes: number;
+  replies: number;
+  readings: number;
+  location: string | null;
+  isp: string;
+  voteId: number | null;
+  limitation: number | null;
+  showLocation: number | null;
+  status: number;
+  primaryPictures: Array<string>;
+  pictures: Array<string>;
+  tags: Array<object>;
+  videos: Array<object>;
+  valued: boolean;
+  top: boolean;
+  labels: Array<object>;
+  author: PostDetailRawAuthor;
+  liked: boolean;
+  favorite: boolean;
+}
+
+interface PostDetailRawResponse {
+  code: number;
+  info: PostDetailRaw;
 }
 
 interface NoticeCountRawInner {
@@ -833,7 +874,9 @@ export async function getPostListBrief(
       likeCount: raw.likes !== undefined ? raw.likes : 0,
       replyCount: raw.replies !== undefined ? raw.replies : 0,
       favoriteCount: 0,
-      createdAt: raw.post_time
+      createdAt: raw.post_time,
+      pictures: raw.pictures,
+      readings: raw.readings
     };
     items.push(item);
   }
@@ -885,24 +928,25 @@ export function getPostUserList(uid: number, page: number, pageSize: number): Pr
 
 /** 帖子详情 */
 export async function getPostDetail(id: number): Promise<PostDetailData> {
-  let url: string = buildUrl('/post/detail', [{ key: 'id', value: id }]);
+  let url: string = buildUrl('/post/detail/' + String(id));
   let resp: PostDetailRawResponse = await fetchJson<PostDetailRawResponse>(url, getOptions());
   if (resp.code !== 0) {
     throw new Error('getPostDetail failed, code=' + String(resp.code));
   }
-  let raw: PostDetailRaw = resp.data;
+  let raw: PostDetailRaw = resp.info;
   let authorBrief: UserBriefData = {
     uid: raw.author.uid,
     nickname: raw.author.nickname,
     avatar: raw.author.avatar,
     level: 0
   };
+  let pictures: Array<string> = raw.primaryPictures.length > 0 ? raw.primaryPictures : raw.pictures;
   let data: PostDetailData = {
     id: raw.id,
     title: raw.title,
     content: raw.content,
     author: authorBrief,
-    pictures: raw.pictures,
+    pictures: pictures,
     createdAt: raw.post_time,
     likeCount: raw.likes,
     replyCount: raw.replies,
@@ -918,11 +962,11 @@ export async function getPostCommentList(
   pageSize: number
 ): Promise<PagedListData<PostCommentItemData>> {
   let params: Array<QueryParam> = [
-    { key: 'id', value: id },
     { key: 'page', value: page },
-    { key: 'pageSize', value: pageSize }
+    { key: 'pageSize', value: pageSize },
+    { key: 'order', value: 0 }
   ];
-  let url: string = buildUrl('/post/comment/list', params);
+  let url: string = buildUrl('/reply/list/' + String(id), params);
   let resp: PostCommentRawResponse = await fetchJson<PostCommentRawResponse>(url, getOptions());
   if (resp.code !== 0) {
     throw new Error('getPostCommentList failed, code=' + String(resp.code));
@@ -932,13 +976,13 @@ export async function getPostCommentList(
   for (i = 0; i < resp.list.length; i++) {
     let raw: PostCommentRawItem = resp.list[i];
     let userBrief: UserBriefData = {
-      uid: raw.user.uid,
-      nickname: raw.user.nickname,
-      avatar: raw.user.avatar,
+      uid: raw.author.uid,
+      nickname: raw.author.nickname,
+      avatar: raw.author.avatar,
       level: 0
     };
     let item: PostCommentItemData = {
-      id: raw.id,
+      id: raw.floorId,
       user: userBrief,
       content: raw.content,
       createdAt: raw.time
@@ -947,8 +991,8 @@ export async function getPostCommentList(
   }
   let result: PagedListData<PostCommentItemData> = {
     list: list,
-    page: resp.page,
-    pageSize: resp.pageSize,
+    page: page,
+    pageSize: pageSize,
     total: resp.total
   };
   return result;

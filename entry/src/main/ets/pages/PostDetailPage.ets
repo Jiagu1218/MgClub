@@ -1,78 +1,240 @@
 import type { PostDetailData, PostCommentItemData } from '../common/network';
-import { PostDetailViewModel } from '../viewmodel/PostDetailViewModel';
+import { PostDetailViewModel, PostContentBlock } from '../viewmodel/PostDetailViewModel';
 
+interface PostDetailRouteParams {
+  id?: number | string;
+}
+
+@Entry
 @ComponentV2
-export struct PostDetailPage {
+struct PostDetailPage {
   @Local vm: PostDetailViewModel = new PostDetailViewModel();
 
   aboutToAppear(): void {
     // 从路由参数获取帖子 ID
     let uiContext = this.getUIContext();
     let router = uiContext.getRouter();
-    let params = router.getParams();
-    if (params !== undefined && params['id'] !== undefined) {
-      let idValue: number = Number(params['id']);
-      this.vm.init(idValue);
-      this.vm.loadDetail();
-      this.vm.loadFirstCommentsPage();
+    let params = router.getParams() as PostDetailRouteParams;
+    if (params === undefined || params.id === undefined) {
+      return;
     }
+    let idValue: number = Number(params.id);
+    this.vm.init(idValue);
+    this.vm.loadDetail();
+    this.vm.loadFirstCommentsPage();
   }
 
   @Builder
   private buildImageGrid(pictures: Array<string>): void {
-    if (pictures.length === 0) {
-      return;
-    }
-    let i: number;
     Column() {
-      for (i = 0; i < pictures.length; i++) {
-        Image(pictures[i])
+      ForEach(pictures, (url: string) => {
+        Image(url)
           .width('100%')
           .aspectRatio(1.2)
           .objectFit(ImageFit.Cover)
           .borderRadius(8)
           .backgroundColor(0xFFE5E5E5)
           .margin({ bottom: 8 });
-      }
+      })
     }
     .margin({ top: 8, bottom: 8 });
   }
 
   @Builder
   private buildCommentItem(item: PostCommentItemData): void {
-    Row() {
-      Image(item.user.avatar)
-        .width(32)
-        .height(32)
-        .borderRadius(16)
-        .backgroundColor(0xFFD8D8D8);
+    Column() {
+      Row() {
+        Image(item.user.avatar)
+          .width(32)
+          .height(32)
+          .borderRadius(16)
+          .backgroundColor(0xFFD8D8D8);
+
+        Column() {
+          Text(item.user.nickname)
+            .fontSize(13)
+            .fontWeight(FontWeight.Medium)
+            .maxLines(1)
+            .textOverflow({ overflow: TextOverflow.Ellipsis });
+
+          Text(item.createdAt)
+            .fontSize(11)
+            .opacity(0.6)
+            .margin({ top: 2 });
+        }
+        .margin({ left: 10 });
+      }
 
       Column() {
-        Text(item.user.nickname)
-          .fontSize(13)
-          .fontWeight(FontWeight.Medium)
-          .maxLines(1)
-          .textOverflow({ overflow: TextOverflow.Ellipsis });
-
-        Text(item.createdAt)
-          .fontSize(11)
-          .opacity(0.6)
-          .margin({ top: 2, bottom: 4 });
-
-        Text(item.content)
-          .fontSize(14)
-          .lineHeight(20)
-          .opacity(0.95);
+        ForEach(this.vm.parseContentToBlocks(item.content), (block: PostContentBlock) => {
+          if (block.type === 'text') {
+            Text(block.text)
+              .fontSize(14)
+              .lineHeight(20)
+              .opacity(0.95)
+              .margin({ top: 6 });
+          } else if (block.type === 'image') {
+            if (block.width !== undefined && block.height !== undefined) {
+              Image(block.src)
+                .width(block.width)
+                .height(block.height)
+                .borderRadius(8)
+                .backgroundColor(0xFFF3F3F3)
+                .margin({ top: 8 });
+            } else if (block.width !== undefined) {
+              Image(block.src)
+                .width(block.width)
+                .borderRadius(8)
+                .backgroundColor(0xFFF3F3F3)
+                .margin({ top: 8 });
+            } else if (block.height !== undefined) {
+              Image(block.src)
+                .height(block.height)
+                .borderRadius(8)
+                .backgroundColor(0xFFF3F3F3)
+                .margin({ top: 8 });
+            } else {
+              Image(block.src)
+                .width('100%')
+                .objectFit(ImageFit.Contain)
+                .borderRadius(8)
+                .backgroundColor(0xFFF3F3F3)
+                .margin({ top: 8 });
+            }
+          }
+        })
       }
-      .margin({ left: 12 });
+      .margin({ top: 8 });
     }
     .width('100%')
-    .padding({ left: 16, right: 16, top: 10, bottom: 10 })
-    .backgroundColor(Color.White);
+    .padding({ left: 12, right: 12, top: 10, bottom: 12 })
+    .backgroundColor(Color.White)
+    .borderRadius(10);
+  }
+
+  @Builder
+  private buildDetailSection(detail: PostDetailData): void {
+    Scroll() {
+      Column() {
+        Text(detail.title)
+          .fontSize(20)
+          .fontWeight(FontWeight.Bold)
+          .margin({ top: 12, bottom: 8 });
+
+        Row() {
+          Text(detail.author.nickname)
+            .fontSize(13)
+            .opacity(0.9);
+
+          Text(' · ')
+            .fontSize(13)
+            .opacity(0.6);
+
+          Text(detail.createdAt)
+            .fontSize(13)
+            .opacity(0.6);
+
+          Blank();
+        }
+        .margin({ bottom: 10 });
+
+        ForEach(this.vm.contentBlocks, (block: PostContentBlock) => {
+          if (block.type === 'text') {
+            Text(block.text)
+              .fontSize(15)
+              .lineHeight(22)
+              .opacity(0.95)
+              .margin({ bottom: 8 });
+          } else if (block.type === 'image') {
+            if (block.width !== undefined && block.height !== undefined) {
+              Image(block.src)
+                .width(block.width)
+                .height(block.height)
+                .borderRadius(8)
+                .backgroundColor(0xFFE5E5E5)
+                .margin({ top: 4, bottom: 8 });
+            } else if (block.width !== undefined) {
+              Image(block.src)
+                .width(block.width)
+                .borderRadius(8)
+                .backgroundColor(0xFFE5E5E5)
+                .margin({ top: 4, bottom: 8 });
+            } else if (block.height !== undefined) {
+              Image(block.src)
+                .height(block.height)
+                .borderRadius(8)
+                .backgroundColor(0xFFE5E5E5)
+                .margin({ top: 4, bottom: 8 });
+            } else {
+              Image(block.src)
+                .width('100%')
+                .objectFit(ImageFit.Contain)
+                .borderRadius(8)
+                .backgroundColor(0xFFE5E5E5)
+                .margin({ top: 4, bottom: 8 });
+            }
+          }
+        })
+
+        this.buildImageGrid(detail.pictures);
+
+        Row() {
+          Text('👍 ' + detail.likeCount)
+            .fontSize(13)
+            .opacity(0.9)
+            .margin({ right: 16 });
+
+          Text('💬 ' + detail.replyCount)
+            .fontSize(13)
+            .opacity(0.9)
+            .margin({ right: 16 });
+
+          Text('👁 ' + detail.readings)
+            .fontSize(13)
+            .opacity(0.9);
+        }
+        .margin({ bottom: 16 });
+
+        // 评论标题
+        Row() {
+          Text('评论')
+            .fontSize(16)
+            .fontWeight(FontWeight.Medium);
+          Blank();
+        }
+        .margin({ bottom: 8 });
+
+        if (this.vm.comments.length === 0 && this.vm.loadingComments) {
+          Text('评论加载中...')
+            .fontSize(13)
+            .opacity(0.7)
+            .margin({ bottom: 12 });
+        } else if (this.vm.comments.length === 0) {
+          Text('还没有评论，快来抢沙发吧～')
+            .fontSize(13)
+            .opacity(0.7)
+            .margin({ bottom: 12 });
+        } else {
+          ForEach(this.vm.comments, (comment: PostCommentItemData) => {
+            this.buildCommentItem(comment);
+          })
+
+          if (this.vm.commentsHasMore) {
+            Button(this.vm.loadingComments ? '加载中...' : '加载更多评论', { type: ButtonType.Capsule })
+              .margin({ top: 12, bottom: 24 })
+              .onClick(() => {
+                this.vm.loadMoreComments();
+              })
+              .enabled(!this.vm.loadingComments);
+          }
+        }
+      }
+      .padding({ left: 16, right: 16, bottom: 24 });
+    }
+    .layoutWeight(1);
   }
 
   build() {
-    let detail: PostDetailData | null = this.vm.detail;
     Column() {
       // 顶部导航栏
       Row() {
@@ -94,7 +256,7 @@ export struct PostDetailPage {
       .height(52)
       .alignItems(VerticalAlign.Center);
 
-      if (this.vm.loading && detail === null) {
+      if (this.vm.loading && this.vm.detail === null) {
         Column() {
           Text('加载中...')
             .fontSize(14)
@@ -104,7 +266,7 @@ export struct PostDetailPage {
         .height('100%')
         .justifyContent(FlexAlign.Center)
         .alignItems(HorizontalAlign.Center);
-      } else if (this.vm.errorMessage !== '' && detail === null) {
+      } else if (this.vm.errorMessage !== '' && this.vm.detail === null) {
         Column() {
           Text(this.vm.errorMessage)
             .fontSize(14)
@@ -120,94 +282,8 @@ export struct PostDetailPage {
         .height('100%')
         .justifyContent(FlexAlign.Center)
         .alignItems(HorizontalAlign.Center);
-      } else if (detail !== null) {
-        Scroll() {
-          Column() {
-            Text(detail.title)
-              .fontSize(20)
-              .fontWeight(FontWeight.Bold)
-              .margin({ top: 12, bottom: 8 });
-
-            Row() {
-              Text(detail.author.nickname)
-                .fontSize(13)
-                .opacity(0.9);
-
-              Text(' · ')
-                .fontSize(13)
-                .opacity(0.6);
-
-              Text(detail.createdAt)
-                .fontSize(13)
-                .opacity(0.6);
-
-              Blank();
-            }
-            .margin({ bottom: 10 });
-
-            Text(detail.content)
-              .fontSize(15)
-              .lineHeight(22)
-              .opacity(0.95)
-              .margin({ bottom: 10 });
-
-            this.buildImageGrid(detail.pictures);
-
-            Row() {
-              Text('👍 ' + detail.likeCount)
-                .fontSize(13)
-                .opacity(0.9)
-                .margin({ right: 16 });
-
-              Text('💬 ' + detail.replyCount)
-                .fontSize(13)
-                .opacity(0.9)
-                .margin({ right: 16 });
-
-              Text('👁 ' + detail.readings)
-                .fontSize(13)
-                .opacity(0.9);
-            }
-            .margin({ bottom: 16 });
-
-            // 评论标题
-            Row() {
-              Text('评论')
-                .fontSize(16)
-                .fontWeight(FontWeight.Medium);
-              Blank();
-            }
-            .margin({ bottom: 8 });
-
-            if (this.vm.comments.length === 0 && this.vm.loadingComments) {
-              Text('评论加载中...')
-                .fontSize(13)
-                .opacity(0.7)
-                .margin({ bottom: 12 });
-            } else if (this.vm.comments.length === 0) {
-              Text('还没有评论，快来抢沙发吧～')
-                .fontSize(13)
-                .opacity(0.7)
-                .margin({ bottom: 12 });
-            } else {
-              let i: number;
-              for (i = 0; i < this.vm.comments.length; i++) {
-                this.buildCommentItem(this.vm.comments[i]);
-              }
-
-              if (this.vm.commentsHasMore) {
-                Button(this.vm.loadingComments ? '加载中...' : '加载更多评论', { type: ButtonType.Capsule })
-                  .margin({ top: 12, bottom: 24 })
-                  .onClick(() => {
-                    this.vm.loadMoreComments();
-                  })
-                  .enabled(!this.vm.loadingComments);
-              }
-            }
-          }
-          .padding({ left: 16, right: 16, bottom: 24 });
-        }
-        .layoutWeight(1);
+      } else if (this.vm.detail !== null) {
+        this.buildDetailSection(this.vm.detail as PostDetailData);
       }
     }
     .width('100%')

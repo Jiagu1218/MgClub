@@ -91,6 +91,8 @@ export interface PostBriefItemData {
   replyCount: number;
   favoriteCount: number;
   createdAt: string;
+  pictures: Array<string>;
+  readings: number;
 }
 
 /** 帖子用户列表项 */

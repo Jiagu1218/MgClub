@@ -92,7 +92,7 @@ export struct HomePage {
       offsetY: 2
     })
     .onClick(() => {
-      // 跳转到帖子详情路由页面，携带帖子 ID
+      // 跳转到帖子详情路由页面，携带帖子 ID，详情页自行拉取完整信息
       let router = this.getUIContext().getRouter();
       router.pushUrl({
         url: 'pages/PostDetailPage',

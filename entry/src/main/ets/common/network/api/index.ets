@@ -18,6 +18,8 @@ export type {
   PostUserItemData,
   PostSearchData,
   PostSearchItemData,
+  PostDetailData,
+  PostCommentItemData,
   NoticeCountData,
   NoticeReplyItemData,
   SignSignedData,
