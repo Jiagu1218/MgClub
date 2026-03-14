@@ -1,5 +1,5 @@
 import { getPostDetail, getPostCommentList } from '../common/network';
-import type { PostDetailData, PostCommentItemData, PagedListData } from '../common/network';
+import type { PostDetailData, PostCommentItemData, ReplyListData } from '../common/network';
 
 export interface PostContentBlock {
   type: string; // 'text' | 'image'
@@ -15,7 +15,11 @@ export class PostDetailViewModel {
   @Trace detail: PostDetailData | null = null;
   @Trace loading: boolean = false;
   @Trace errorMessage: string = '';
-  @Trace comments: Array<PostCommentItemData> = [];
+  /** 置顶楼层（仅首页返回） */
+  @Trace commentsTopList: Array<PostCommentItemData> = [];
+  /** 普通楼层列表 */
+  @Trace commentsList: Array<PostCommentItemData> = [];
+  @Trace commentsTotal: number = 0;
   @Trace commentsPage: number = 1;
   @Trace commentsPageSize: number = 20;
   @Trace commentsHasMore: boolean = true;
@@ -50,7 +54,8 @@ export class PostDetailViewModel {
     }
     this.commentsPage = 1;
     this.commentsHasMore = true;
-    this.comments = [];
+    this.commentsTopList = [];
+    this.commentsList = [];
     await this.loadMoreComments();
   }
 
@@ -60,20 +65,21 @@ export class PostDetailViewModel {
     }
     this.loadingComments = true;
     try {
-      let resp: PagedListData<PostCommentItemData> = await getPostCommentList(
+      let resp: ReplyListData = await getPostCommentList(
         this.postId,
         this.commentsPage,
         this.commentsPageSize
       );
-      let newList: Array<PostCommentItemData> = [];
-      let i: number;
-      for (i = 0; i < this.comments.length; i++) {
-        newList.push(this.comments[i]);
+      if (this.commentsPage === 1) {
+        this.commentsTopList = resp.topList;
+        this.commentsList = resp.list;
+      } else {
+        let i: number;
+        for (i = 0; i < resp.list.length; i++) {
+          this.commentsList.push(resp.list[i]);
+        }
       }
-      for (i = 0; i < resp.list.length; i++) {
-        newList.push(resp.list[i]);
-      }
-      this.comments = newList;
+      this.commentsTotal = resp.total;
       this.commentsPage = resp.page + 1;
       this.commentsHasMore = resp.page * resp.pageSize < resp.total;
     } catch (e) {

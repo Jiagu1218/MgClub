@@ -1,4 +1,4 @@
-import type { PostDetailData, PostCommentItemData } from '../common/network';
+import type { PostDetailData, PostCommentItemData, ReplySubItemData } from '../common/network';
 import { PostDetailViewModel, PostContentBlock } from '../viewmodel/PostDetailViewModel';
 import { CustomTransition } from '../common/CustomNavigationUtils';
 import { windowUtil } from '../common/WindowUtil';
@@ -58,105 +58,18 @@ struct PostDetailPage {
     CustomTransition.getInstance().unRegisterNavParam('PostDetailPage');
   }
 
+  /** 帖子详情主体：标题、正文、评论 */
   @Builder
-  private buildImageGrid(pictures: Array<string>): void {
-    Column() {
-      ForEach(pictures, (url: string) => {
-        Image(url)
-          .width('100%')
-          .aspectRatio(1.2)
-          .objectFit(ImageFit.Cover)
-          .borderRadius(8)
-          .backgroundColor(0xFFE5E5E5)
-          .margin({ bottom: 8 });
-      })
-    }
-    .margin({ top: 8, bottom: 8 });
-  }
-
-  @Builder
-  private buildCommentItem(item: PostCommentItemData): void {
-    Column() {
-      Row() {
-        Image(item.user.avatar)
-          .width(32)
-          .height(32)
-          .borderRadius(16)
-          .backgroundColor(0xFFD8D8D8);
-
-        Column() {
-          Text(item.user.nickname)
-            .fontSize(13)
-            .fontWeight(FontWeight.Medium)
-            .maxLines(1)
-            .textOverflow({ overflow: TextOverflow.Ellipsis });
-
-          Text(item.createdAt)
-            .fontSize(11)
-            .opacity(0.6)
-            .margin({ top: 2 });
-        }
-        .margin({ left: 10 });
-      }
-
-      Column() {
-        ForEach(this.vm.parseContentToBlocks(item.content), (block: PostContentBlock) => {
-          if (block.type === 'text') {
-            Text(block.text)
-              .fontSize(14)
-              .lineHeight(20)
-              .opacity(0.95)
-              .margin({ top: 6 });
-          } else if (block.type === 'image') {
-            if (block.width !== undefined && block.height !== undefined) {
-              Image(block.src)
-                .width(block.width)
-                .height(block.height)
-                .borderRadius(8)
-                .backgroundColor(0xFFF3F3F3)
-                .margin({ top: 8 });
-            } else if (block.width !== undefined) {
-              Image(block.src)
-                .width(block.width)
-                .borderRadius(8)
-                .backgroundColor(0xFFF3F3F3)
-                .margin({ top: 8 });
-            } else if (block.height !== undefined) {
-              Image(block.src)
-                .height(block.height)
-                .borderRadius(8)
-                .backgroundColor(0xFFF3F3F3)
-                .margin({ top: 8 });
-            } else {
-              Image(block.src)
-                .width('100%')
-                .objectFit(ImageFit.Contain)
-                .borderRadius(8)
-                .backgroundColor(0xFFF3F3F3)
-                .margin({ top: 8 });
-            }
-          }
-        })
-      }
-      .margin({ top: 8 });
-    }
-    .width('100%')
-    .padding({ left: 12, right: 12, top: 10, bottom: 12 })
-    .backgroundColor(Color.White)
-    .borderRadius(10);
-  }
-
-  @Builder
-  private buildDetailSection(detail: PostDetailData): void {
+  buildDetailSection(): void {
     Scroll() {
       Column() {
-        Text(detail.title)
+        Text(this.vm.detail!.title)
           .fontSize(20)
           .fontWeight(FontWeight.Bold)
           .margin({ top: 12, bottom: 8 });
 
         Row() {
-          Text(detail.author.nickname)
+          Text(this.vm.detail!.author.nickname)
             .fontSize(13)
             .opacity(0.9);
 
@@ -164,7 +77,7 @@ struct PostDetailPage {
             .fontSize(13)
             .opacity(0.6);
 
-          Text(detail.createdAt)
+          Text(this.vm.detail!.createdAt)
             .fontSize(13)
             .opacity(0.6);
 
@@ -210,26 +123,25 @@ struct PostDetailPage {
           }
         })
 
-        this.buildImageGrid(detail.pictures);
+        this.buildImageGrid(this.vm.detail!.pictures);
 
         Row() {
-          Text('👍 ' + detail.likeCount)
+          Text('👍 ' + this.vm.detail!.likeCount)
             .fontSize(13)
             .opacity(0.9)
             .margin({ right: 16 });
 
-          Text('💬 ' + detail.replyCount)
+          Text('💬 ' + this.vm.detail!.replyCount)
             .fontSize(13)
             .opacity(0.9)
             .margin({ right: 16 });
 
-          Text('👁 ' + detail.readings)
+          Text('👁 ' + this.vm.detail!.readings)
             .fontSize(13)
             .opacity(0.9);
         }
         .margin({ bottom: 16 });
 
-        // 评论标题
         Row() {
           Text('评论')
             .fontSize(16)
@@ -238,36 +150,258 @@ struct PostDetailPage {
         }
         .margin({ bottom: 8 });
 
-        if (this.vm.comments.length === 0 && this.vm.loadingComments) {
+        if (this.vm.commentsTopList.length === 0 && this.vm.commentsList.length === 0 && this.vm.loadingComments) {
           Text('评论加载中...')
             .fontSize(13)
             .opacity(0.7)
             .margin({ bottom: 12 });
-        } else if (this.vm.comments.length === 0) {
+        } else if (this.vm.commentsTopList.length === 0 && this.vm.commentsList.length === 0) {
           Text('还没有评论，快来抢沙发吧～')
             .fontSize(13)
             .opacity(0.7)
             .margin({ bottom: 12 });
         } else {
-          ForEach(this.vm.comments, (comment: PostCommentItemData) => {
-            this.buildCommentItem(comment);
-          })
+          Column() {
+            if (this.vm.commentsTopList.length > 0) {
+              Text('置顶')
+                .fontSize(12)
+                .fontColor(0xFF999999)
+                .margin({ top: 8, bottom: 6 });
+              ForEach(this.vm.commentsTopList, (comment: PostCommentItemData) => {
+                this.buildCommentItem(comment);
+              });
+              Text('全部评论')
+                .fontSize(12)
+                .fontColor(0xFF999999)
+                .margin({ top: 16, bottom: 8 });
+            }
+            ForEach(this.vm.commentsList, (comment: PostCommentItemData) => {
+              this.buildCommentItem(comment);
+            });
 
-          if (this.vm.commentsHasMore) {
-            Button(this.vm.loadingComments ? '加载中...' : '加载更多评论', { type: ButtonType.Capsule })
-              .margin({ top: 12, bottom: 24 })
-              .onClick(() => {
-                this.vm.loadMoreComments();
-              })
-              .enabled(!this.vm.loadingComments);
+            if (this.vm.commentsHasMore) {
+              Button(this.vm.loadingComments ? '加载中...' : '加载更多评论', { type: ButtonType.Capsule })
+                .margin({ top: 12, bottom: 16 })
+                .onClick(() => {
+                  this.vm.loadMoreComments();
+                })
+                .enabled(!this.vm.loadingComments);
+            }
           }
+          .width('100%')
+          .padding({ left: 4, right: 4, top: 4, bottom: 4 })
+          .backgroundColor(0xFFF2F2F2)
+          .borderRadius(12);
         }
       }
-      .padding({ left: 16, right: 16, bottom: 24 });
+      .padding({ left: 16, right: 16, bottom: 48 });
     }
-    .layoutWeight(1);
+    .layoutWeight(1)
+    .scrollBar(BarState.Off)
+    .edgeEffect(EdgeEffect.Spring);
   }
 
+  @Builder
+  private buildImageGrid(pictures: Array<string>): void {
+    Column() {
+      ForEach(pictures, (url: string) => {
+        Image(url)
+          .width('100%')
+          .aspectRatio(1.2)
+          .objectFit(ImageFit.Cover)
+          .borderRadius(8)
+          .backgroundColor(0xFFE5E5E5)
+          .margin({ bottom: 8 });
+      })
+    }
+    .margin({ top: 8, bottom: 8 });
+  }
+
+  @Builder
+  private buildSubReply(sub: ReplySubItemData): void {
+    Column() {
+      Row() {
+        Image(sub.author.avatar)
+          .width(28)
+          .height(28)
+          .borderRadius(14)
+          .backgroundColor(0xFFE0E0E0);
+
+        Column() {
+          if (sub.mention !== undefined) {
+            Row() {
+              Text(sub.author.nickname)
+                .fontSize(12)
+                .fontWeight(FontWeight.Medium)
+                .fontColor(0xFF007AFF)
+                .maxLines(1)
+                .textOverflow({ overflow: TextOverflow.Ellipsis });
+              Text(' 回复 ')
+                .fontSize(12)
+                .fontColor(0xFF8E8E93);
+              Text(sub.mention.author.nickname)
+                .fontSize(12)
+                .fontWeight(FontWeight.Medium)
+                .fontColor(0xFF007AFF)
+                .maxLines(1)
+                .textOverflow({ overflow: TextOverflow.Ellipsis });
+            }
+            .width('100%');
+          } else {
+            Text(sub.author.nickname)
+              .fontSize(12)
+              .fontWeight(FontWeight.Medium)
+              .fontColor(0xFF007AFF)
+              .maxLines(1)
+              .textOverflow({ overflow: TextOverflow.Ellipsis });
+          }
+
+          Text(sub.time)
+            .fontSize(11)
+            .opacity(0.6)
+            .margin({ top: 2 });
+        }
+        .layoutWeight(1)
+        .width('100%')
+        .margin({ left: 10 })
+        .alignItems(HorizontalAlign.Start);
+      }
+      .width('100%')
+
+      ForEach(this.vm.parseContentToBlocks(sub.content), (block: PostContentBlock) => {
+        if (block.type === 'text') {
+          Text(block.text)
+            .fontSize(13)
+            .lineHeight(20)
+            .opacity(0.9)
+            .margin({ top: 8 });
+        }
+      });
+    }
+    .width('100%')
+    .alignItems(HorizontalAlign.Start)
+    .padding({ left: 12, top: 10, bottom: 10, right: 12 })
+    .backgroundColor(0xFFF5F5F5)
+    .borderRadius(8)
+    .margin({ top: 6 });
+  }
+
+  @Builder
+  private buildCommentItem(item: PostCommentItemData): void {
+    Column() {
+      Row() {
+        Image(item.user.avatar)
+          .width(32)
+          .height(32)
+          .borderRadius(16)
+          .backgroundColor(0xFFD8D8D8);
+
+        Column() {
+          Row() {
+            Text(item.user.nickname)
+              .fontSize(13)
+              .fontWeight(FontWeight.Medium)
+              .maxLines(1)
+              .textOverflow({ overflow: TextOverflow.Ellipsis });
+            if (item.isTop === true) {
+              Text(' 置顶')
+                .fontSize(11)
+                .fontColor(0xFFFF3B30)
+                .margin({ left: 4 });
+            }
+            if (item.floor !== undefined) {
+              Text(' #' + String(item.floor))
+                .fontSize(11)
+                .opacity(0.6)
+                .margin({ left: 2 });
+            }
+          }
+
+          Row() {
+            Text(item.createdAt)
+              .fontSize(11)
+              .opacity(0.6);
+            if (item.likes !== undefined && item.likes > 0) {
+              Text(' · 👍 ' + String(item.likes))
+                .fontSize(11)
+                .opacity(0.6)
+                .margin({ left: 4 });
+            }
+          }
+          .margin({ top: 2 });
+        }
+        .layoutWeight(1)
+        .margin({ left: 10 })
+        .alignItems(HorizontalAlign.Start);
+      }
+      .width('100%')
+
+      Column() {
+        ForEach(this.vm.parseContentToBlocks(item.content), (block: PostContentBlock) => {
+          if (block.type === 'text') {
+            Text(block.text)
+              .fontSize(14)
+              .lineHeight(20)
+              .opacity(0.95)
+              .margin({ top: 6 })
+              .width('100%');
+          } else if (block.type === 'image') {
+            if (block.width !== undefined && block.height !== undefined) {
+              Image(block.src)
+                .width(block.width)
+                .height(block.height)
+                .borderRadius(8)
+                .backgroundColor(0xFFF3F3F3)
+                .margin({ top: 8 });
+            } else if (block.width !== undefined) {
+              Image(block.src)
+                .width(block.width)
+                .borderRadius(8)
+                .backgroundColor(0xFFF3F3F3)
+                .margin({ top: 8 });
+            } else if (block.height !== undefined) {
+              Image(block.src)
+                .height(block.height)
+                .borderRadius(8)
+                .backgroundColor(0xFFF3F3F3)
+                .margin({ top: 8 });
+            } else {
+              Image(block.src)
+                .width('100%')
+                .objectFit(ImageFit.Contain)
+                .borderRadius(8)
+                .backgroundColor(0xFFF3F3F3)
+                .margin({ top: 8 });
+            }
+          }
+        })
+      }
+      .width('100%')
+      .margin({ top: 8 })
+      .alignItems(HorizontalAlign.Start);
+
+      if (item.replies !== undefined && item.replies.length > 0) {
+        Column() {
+          ForEach(item.replies, (sub: ReplySubItemData) => {
+            this.buildSubReply(sub);
+          });
+        }
+        .width('100%')
+        .margin({ top: 8 });
+      }
+    }
+    .width('100%')
+    .padding({
+      left: 12,
+      right: 12,
+      top: 12,
+      bottom: 14
+    })
+    .backgroundColor(Color.White)
+    .borderRadius(12)
+    .alignItems(HorizontalAlign.Start)
+    .margin({ bottom: 14 });
+  }
   build() {
     NavDestination() {
       Column() {
@@ -298,7 +432,7 @@ struct PostDetailPage {
           .justifyContent(FlexAlign.Center)
           .alignItems(HorizontalAlign.Center);
         } else if (this.vm.detail !== null) {
-          this.buildDetailSection(this.vm.detail as PostDetailData);
+          this.buildDetailSection();
         }
       }
       .width('100%')
@@ -333,4 +467,3 @@ struct PostDetailPage {
 export function PostDetailPageBuilder(): void {
   PostDetailPage();
 }
-

@@ -24,6 +24,9 @@ import type {
   PostSearchItemData,
   PostDetailData,
   PostCommentItemData,
+  ReplyListData,
+  ReplySubItemData,
+  ReplyMentionData,
   NoticeCountData,
   NoticeReplyItemData,
   SignSignedData,
@@ -296,6 +299,27 @@ interface PostCommentRawAuthor {
   isPostMaster: boolean;
 }
 
+interface PostCommentRawMentionFloor {
+  id: number;
+  content: string;
+  time: string;
+}
+
+interface PostCommentRawMention {
+  author: PostCommentRawAuthor;
+  floor: PostCommentRawMentionFloor;
+}
+
+interface PostCommentRawSubReply {
+  id: number;
+  content: string;
+  time: string;
+  location: string | null;
+  isp: string;
+  author: PostCommentRawAuthor;
+  mention: PostCommentRawMention | null;
+}
+
 interface PostCommentRawItem {
   floorId: number;
   floor: number;
@@ -310,14 +334,14 @@ interface PostCommentRawItem {
   liked: boolean;
   likes: number;
   author: PostCommentRawAuthor;
-  replies: Array<object>;
+  replies: Array<PostCommentRawSubReply>;
 }
 
 interface PostCommentRawResponse {
   code: number;
   postId: number;
   total: number;
-  topList: Array<object>;
+  topList: Array<PostCommentRawItem>;
   list: Array<PostCommentRawItem>;
 }
 
@@ -969,12 +993,68 @@ export async function getPostDetail(id: number): Promise<PostDetailData> {
   return data;
 }
 
-/** 帖子评论列表 */
+function mapReplySubItem(raw: PostCommentRawSubReply): ReplySubItemData {
+  let author: UserBriefData = {
+    uid: raw.author.uid,
+    nickname: raw.author.nickname,
+    avatar: raw.author.avatar,
+    level: 0
+  };
+  let mention: ReplyMentionData | undefined = undefined;
+  if (raw.mention !== null && raw.mention !== undefined) {
+    let m: PostCommentRawMention = raw.mention;
+    let floorAuthor: UserBriefData = {
+      uid: m.author.uid,
+      nickname: m.author.nickname,
+      avatar: m.author.avatar,
+      level: 0
+    };
+    mention = {
+      author: floorAuthor,
+      floor: { id: m.floor.id, content: m.floor.content, time: m.floor.time }
+    };
+  }
+  return {
+    id: raw.id,
+    content: raw.content,
+    time: raw.time,
+    author: author,
+    mention: mention
+  };
+}
+
+function mapCommentRawToItem(raw: PostCommentRawItem): PostCommentItemData {
+  let userBrief: UserBriefData = {
+    uid: raw.author.uid,
+    nickname: raw.author.nickname,
+    avatar: raw.author.avatar,
+    level: 0
+  };
+  let replies: Array<ReplySubItemData> = [];
+  let j: number;
+  for (j = 0; j < raw.replies.length; j++) {
+    replies.push(mapReplySubItem(raw.replies[j]));
+  }
+  let item: PostCommentItemData = {
+    id: raw.floorId,
+    user: userBrief,
+    content: raw.content,
+    createdAt: raw.time,
+    floor: raw.floor,
+    isTop: raw.isTop,
+    likes: raw.likes,
+    liked: raw.liked,
+    replies: replies.length > 0 ? replies : undefined
+  };
+  return item;
+}
+
+/** 帖子评论/楼层回复列表（topList 置顶 + list 普通楼层） */
 export async function getPostCommentList(
   id: number,
   page: number,
   pageSize: number
-): Promise<PagedListData<PostCommentItemData>> {
+): Promise<ReplyListData> {
   let params: Array<QueryParam> = [
     { key: 'page', value: page },
     { key: 'pageSize', value: pageSize },
@@ -985,29 +1065,21 @@ export async function getPostCommentList(
   if (resp.code !== 0) {
     throw new Error('getPostCommentList failed, code=' + String(resp.code));
   }
-  let list: Array<PostCommentItemData> = [];
+  let topList: Array<PostCommentItemData> = [];
   let i: number;
-  for (i = 0; i < resp.list.length; i++) {
-    let raw: PostCommentRawItem = resp.list[i];
-    let userBrief: UserBriefData = {
-      uid: raw.author.uid,
-      nickname: raw.author.nickname,
-      avatar: raw.author.avatar,
-      level: 0
-    };
-    let item: PostCommentItemData = {
-      id: raw.floorId,
-      user: userBrief,
-      content: raw.content,
-      createdAt: raw.time
-    };
-    list.push(item);
+  for (i = 0; i < resp.topList.length; i++) {
+    topList.push(mapCommentRawToItem(resp.topList[i]));
   }
-  let result: PagedListData<PostCommentItemData> = {
+  let list: Array<PostCommentItemData> = [];
+  for (i = 0; i < resp.list.length; i++) {
+    list.push(mapCommentRawToItem(resp.list[i]));
+  }
+  let result: ReplyListData = {
+    topList: topList,
     list: list,
+    total: resp.total,
     page: page,
-    pageSize: pageSize,
-    total: resp.total
+    pageSize: pageSize
   };
   return result;
 }

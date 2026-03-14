@@ -234,10 +234,51 @@ export interface PostDetailData {
   readings: number;
 }
 
-/** 帖子评论项 */
+/** 楼层回复中的 @ 引用（被引用楼层摘要） */
+export interface ReplyMentionFloor {
+  id: number;
+  content: string;
+  time: string;
+}
+
+/** 楼层回复中的 @ 引用 */
+export interface ReplyMentionData {
+  author: UserBriefData;
+  floor: ReplyMentionFloor;
+}
+
+/** 楼层下的子回复项（楼中楼） */
+export interface ReplySubItemData {
+  id: number;
+  content: string;
+  time: string;
+  author: UserBriefData;
+  mention?: ReplyMentionData;
+}
+
+/** 帖子评论/楼层项（与 /reply/list 一致：topList 置顶 + list 普通楼层） */
 export interface PostCommentItemData {
   id: number;
   user: UserBriefData;
   content: string;
   createdAt: string;
+  /** 楼层号 */
+  floor?: number;
+  /** 是否置顶 */
+  isTop?: boolean;
+  /** 点赞数 */
+  likes?: number;
+  /** 当前用户是否已点赞 */
+  liked?: boolean;
+  /** 该楼层下的子回复 */
+  replies?: Array<ReplySubItemData>;
+}
+
+/** 楼层回复列表接口返回（topList 置顶，list 普通列表） */
+export interface ReplyListData {
+  topList: Array<PostCommentItemData>;
+  list: Array<PostCommentItemData>;
+  total: number;
+  page: number;
+  pageSize: number;
 }
