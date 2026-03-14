@@ -29,6 +29,12 @@ import type {
   ReplyMentionData,
   NoticeCountData,
   NoticeReplyItemData,
+  ChatListResponse,
+  ChatListItemData,
+  ChatListUserData,
+  ChatHistoryResponse,
+  ChatHistoryItemData,
+  ChatNewestResponse,
   SignSignedData,
   ContributionRankItemData,
   OrderItem,
@@ -1145,6 +1151,150 @@ export function getNoticeReplyList(page: number, pageSize: number): Promise<Page
         pageSize: pageSize,
         total: list.length
       };
+      return result;
+    }
+  );
+}
+
+// ---------- 八（续）、私信 / 聊天 ----------
+
+/** 私信列表原始项中的用户 */
+interface ChatListRawUser {
+  uid: number;
+  nickname: string;
+  avatar: string;
+  exp: number;
+  auth: number;
+  authentication: string;
+}
+
+/** 私信列表原始项 */
+interface ChatListRawItem {
+  isTop: boolean;
+  unread: number;
+  time: string;
+  lastMessage: string;
+  user: ChatListRawUser;
+}
+
+/** 私信列表原始响应 */
+interface ChatListRawResponse {
+  code: number;
+  list: Array<ChatListRawItem>;
+  token?: string;
+}
+
+/** 私信历史原始项 */
+interface ChatHistoryRawItem {
+  id: number;
+  from: number;
+  to: number;
+  content: string;
+  time: string;
+  type: number;
+  status: number;
+}
+
+/** 私信历史原始响应 */
+interface ChatHistoryRawResponse {
+  code: number;
+  list: Array<ChatHistoryRawItem>;
+}
+
+/** 私信会话列表 */
+export function getChatList(): Promise<ChatListResponse> {
+  return fetchJson<ChatListRawResponse>(buildUrl('/chat/list'), getOptions()).then(
+    (resp: ChatListRawResponse) => {
+      if (resp.code !== 0) {
+        throw new Error('getChatList failed, code=' + String(resp.code));
+      }
+      let list: Array<ChatListItemData> = [];
+      for (let i = 0; i < resp.list.length; i++) {
+        let raw: ChatListRawItem = resp.list[i];
+        let user: ChatListUserData = {
+          uid: raw.user.uid,
+          nickname: raw.user.nickname,
+          avatar: raw.user.avatar,
+          exp: raw.user.exp,
+          auth: raw.user.auth,
+          authentication: raw.user.authentication
+        };
+        let item: ChatListItemData = {
+          isTop: raw.isTop,
+          unread: raw.unread,
+          time: raw.time,
+          lastMessage: raw.lastMessage,
+          user: user
+        };
+        list.push(item);
+      }
+      let result: ChatListResponse = {
+        code: resp.code,
+        list: list,
+        token: resp.token
+      };
+      return result;
+    }
+  );
+}
+
+/** 私信历史（与某用户的聊天记录） */
+export function getChatHistory(uid: number, id: number = 0): Promise<ChatHistoryResponse> {
+  let params: Array<QueryParam> = [
+    { key: 'id', value: String(id) },
+    { key: 'uid', value: String(uid) }
+  ];
+  return fetchJson<ChatHistoryRawResponse>(buildUrl('/chat/history', params), getOptions()).then(
+    (resp: ChatHistoryRawResponse) => {
+      if (resp.code !== 0) {
+        throw new Error('getChatHistory failed, code=' + String(resp.code));
+      }
+      let list: Array<ChatHistoryItemData> = [];
+      for (let i = 0; i < resp.list.length; i++) {
+        let raw: ChatHistoryRawItem = resp.list[i];
+        let item: ChatHistoryItemData = {
+          id: raw.id,
+          from: raw.from,
+          to: raw.to,
+          content: raw.content,
+          time: raw.time,
+          type: raw.type,
+          status: raw.status
+        };
+        list.push(item);
+      }
+      let result: ChatHistoryResponse = { code: resp.code, list: list };
+      return result;
+    }
+  );
+}
+
+/** 私信最新消息（某条消息之后的新消息） */
+export function getChatNewest(uid: number, id: number): Promise<ChatNewestResponse> {
+  let params: Array<QueryParam> = [
+    { key: 'uid', value: String(uid) },
+    { key: 'id', value: String(id) }
+  ];
+  return fetchJson<ChatHistoryRawResponse>(buildUrl('/chat/chat-newest', params), getOptions()).then(
+    (resp: ChatHistoryRawResponse) => {
+      if (resp.code !== 0) {
+        throw new Error('getChatNewest failed, code=' + String(resp.code));
+      }
+      let list: Array<ChatHistoryItemData> = [];
+      for (let i = 0; i < resp.list.length; i++) {
+        let raw: ChatHistoryRawItem = resp.list[i];
+        let item: ChatHistoryItemData = {
+          id: raw.id,
+          from: raw.from,
+          to: raw.to,
+          content: raw.content,
+          time: raw.time,
+          type: raw.type,
+          status: raw.status
+        };
+        list.push(item);
+      }
+      let result: ChatNewestResponse = { code: resp.code, list: list };
       return result;
     }
   );

@@ -9,6 +9,11 @@
       "name": "LoginPage",
       "pageSourceFile": "src/main/ets/pages/LoginPage.ets",
       "buildFunction": "LoginPageBuilder"
+    },
+    {
+      "name": "ChatDetailPage",
+      "pageSourceFile": "src/main/ets/pages/ChatDetailPage.ets",
+      "buildFunction": "ChatDetailPageBuilder"
     }
   ]
 }

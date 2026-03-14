@@ -132,6 +132,55 @@ export interface NoticeReplyItemData {
   read: boolean;
 }
 
+/** 私信会话列表中的用户信息 */
+export interface ChatListUserData {
+  uid: number;
+  nickname: string;
+  avatar: string;
+  exp: number;
+  auth: number;
+  authentication: string;
+}
+
+/** 私信会话列表项 */
+export interface ChatListItemData {
+  isTop: boolean;
+  unread: number;
+  time: string;
+  lastMessage: string;
+  user: ChatListUserData;
+}
+
+/** 私信会话列表响应 */
+export interface ChatListResponse {
+  code: number;
+  list: Array<ChatListItemData>;
+  token?: string;
+}
+
+/** 私信历史单条消息 */
+export interface ChatHistoryItemData {
+  id: number;
+  from: number;
+  to: number;
+  content: string;
+  time: string;
+  type: number;
+  status: number;
+}
+
+/** 私信历史响应 */
+export interface ChatHistoryResponse {
+  code: number;
+  list: Array<ChatHistoryItemData>;
+}
+
+/** 私信最新消息响应（与历史结构一致） */
+export interface ChatNewestResponse {
+  code: number;
+  list: Array<ChatHistoryItemData>;
+}
+
 /** 签到状态 data */
 export interface SignSignedData {
   signed: boolean;
