@@ -5,6 +5,7 @@ import type {
 } from '../common/network';
 import { DiscoverViewModel } from '../viewmodel/DiscoverViewModel';
 import type { PostDetailRouteParams } from './PostDetailPage';
+import { HomePostItem } from '../components/HomePostItem';
 
 @ComponentV2
 export struct DiscoverPage {
@@ -127,38 +128,24 @@ export struct DiscoverPage {
 
   @Builder
   private buildPostItem(item: PostSearchItemData): void {
-    Column() {
-      Text(item.title)
-        .fontSize(14)
-        .fontWeight(FontWeight.Medium)
-        .maxLines(2)
-        .textOverflow({ overflow: TextOverflow.Ellipsis })
-        .margin({ bottom: 6 })
-
-      Row() {
-        Text(item.author.nickname)
-          .fontSize(12)
-          .opacity(0.9)
-
-        Text(' · ')
-          .fontSize(12)
-          .opacity(0.6)
-
-        Text(item.createdAt)
-          .fontSize(12)
-          .opacity(0.6)
-
-        Blank()
+    HomePostItem({
+      item: {
+        id: item.id,
+        title: item.title,
+        summary: item.summary,
+        author: item.author,
+        likeCount: 0,
+        replyCount: 0,
+        favoriteCount: 0,
+        createdAt: item.createdAt,
+        pictures: [],
+        readings: 0
       }
-    }
-    .width('100%')
-    .padding({ left: 16, right: 16, top: 10, bottom: 10 })
-    .backgroundColor(Color.White)
-    .borderRadius(10)
-    .onClick(() => {
-      let param: PostDetailRouteParams = { id: item.id };
-      this.pathStack.pushPathByName('PostDetailPage', param);
     })
+      .onClick(() => {
+        let param: PostDetailRouteParams = { id: item.id };
+        this.pathStack.pushPathByName('PostDetailPage', param);
+      })
   }
 
   @Builder

@@ -109,6 +109,10 @@ export interface PostUserItemData {
   createdAt: string;
   likeCount: number;
   replyCount: number;
+  // 以下字段来自 /post/user/list，用于“我的-动态”展示更完整信息
+  readings?: number;
+  pictures?: Array<string>;
+  author?: UserBriefData;
 }
 
 /** 通知计数 data */

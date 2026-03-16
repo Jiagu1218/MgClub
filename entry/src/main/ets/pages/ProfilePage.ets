@@ -1,7 +1,8 @@
 import type { LoginPageRouteParams } from './LoginPage';
 import type { PostUserItemData, UserBriefData, PostBriefItemData } from '../common/network';
 import { ProfileViewModel } from '../viewmodel/ProfileViewModel';
-import { ProfileUserPostItem, ProfileUserBriefItem, ProfileFavoritePostItem } from '../components/ProfileListItems';
+import { ProfileUserBriefItem } from '../components/ProfileListItems';
+import { HomePostItem } from '../components/HomePostItem';
 
 @ComponentV2
 export struct ProfilePage {
@@ -140,7 +141,26 @@ export struct ProfilePage {
                       LazyForEach(this.vm.postsDataSource,
                         (item: PostUserItemData) => {
                           ListItem() {
-                            ProfileUserPostItem(item);
+                            HomePostItem({
+                              item: {
+                                id: item.id,
+                                title: item.title,
+                                summary: item.summary,
+                                author: item.author !== undefined ? item.author : {
+                                  uid: this.vm.userInfo !== undefined ? this.vm.userInfo.uid : 0,
+                                  nickname: this.vm.userInfo !== undefined ? this.vm.userInfo.nickname : '',
+                                  avatar: this.vm.userInfo !== undefined ? this.vm.userInfo.avatar : '',
+                                  level: this.vm.userInfo !== undefined ? this.vm.userInfo.level : 0
+                                },
+                                likeCount: item.likeCount,
+                                replyCount: item.replyCount,
+                                favoriteCount: 0,
+                                createdAt: item.createdAt,
+                                pictures: item.pictures !== undefined ? item.pictures : [],
+                                readings: item.readings !== undefined ? item.readings : 0
+                              },
+                              isTop: false
+                            });
                           }
                         },
                         (item: PostUserItemData) => {
@@ -194,7 +214,7 @@ export struct ProfilePage {
                       LazyForEach(this.vm.favoriteDataSource,
                         (item: PostBriefItemData) => {
                           ListItem() {
-                            ProfileFavoritePostItem(item);
+                            HomePostItem({ item: item, isTop: false });
                           }
                         },
                         (item: PostBriefItemData) => {
