@@ -56,6 +56,7 @@ export {
   searchPost,
   getPostListBrief,
   getPostUserList,
+  getPostFavoriteList,
   getPostDetail,
   getPostCommentList,
   getNoticeCount,

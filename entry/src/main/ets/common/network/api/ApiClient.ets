@@ -294,6 +294,34 @@ interface PostUserListRawResponse {
   list: Array<PostUserListRawItem>;
 }
 
+// 用户收藏帖子列表 raw 类型（结构与 /post/favorite/list 示例对齐）
+interface PostFavoriteListRawItem {
+  id: number;
+  title: string;
+  plaintext: string;
+  content: string;
+  post_time: string;
+  options: string;
+  auth: number;
+  status: number;
+  exp: number;
+  authentication: string;
+  likes: number;
+  replies: number;
+  readings: number;
+  primaryPictures: Array<string>;
+  pictures: Array<string>;
+  liked: boolean;
+  tags: Array<object>;
+  labels: Array<object>;
+  author: PostUserListRawAuthor;
+}
+
+interface PostFavoriteListRawResponse {
+  code: number;
+  list: Array<PostFavoriteListRawItem>;
+}
+
 interface PostCommentRawAuthor {
   uid: number;
   nickname: string;
@@ -968,6 +996,59 @@ export function getPostUserList(uid: number, page: number, pageSize: number): Pr
       return result;
     }
   );
+}
+
+/** 用户收藏帖子列表 */
+export async function getPostFavoriteList(
+  uid: number,
+  page: number,
+  pageSize: number
+): Promise<PagedListData<PostBriefItemData>> {
+  let params: Array<QueryParam> = [
+    { key: 'uid', value: uid },
+    { key: 'page', value: page },
+    { key: 'pageSize', value: pageSize }
+  ];
+  let resp: PostFavoriteListRawResponse = await fetchJson<PostFavoriteListRawResponse>(
+    buildUrl('/post/favorite/list', params),
+    getOptions()
+  );
+  if (resp.code !== 0) {
+    throw new Error('getPostFavoriteList failed, code=' + String(resp.code));
+  }
+  let list: Array<PostBriefItemData> = [];
+  let i: number;
+  for (i = 0; i < resp.list.length; i++) {
+    let raw: PostFavoriteListRawItem = resp.list[i];
+    let authorBrief: UserBriefData = {
+      uid: raw.author.uid,
+      nickname: raw.author.nickname,
+      avatar: raw.author.avatar,
+      level: 0
+    };
+    let pictures: Array<string> =
+      raw.primaryPictures !== undefined && raw.primaryPictures.length > 0 ? raw.primaryPictures : raw.pictures;
+    let item: PostBriefItemData = {
+      id: raw.id,
+      title: raw.title,
+      summary: raw.content,
+      author: authorBrief,
+      likeCount: raw.likes,
+      replyCount: raw.replies,
+      favoriteCount: 0,
+      createdAt: raw.post_time,
+      pictures: pictures,
+      readings: raw.readings
+    };
+    list.push(item);
+  }
+  let result: PagedListData<PostBriefItemData> = {
+    list: list,
+    page: page,
+    pageSize: pageSize,
+    total: list.length
+  };
+  return result;
 }
 
 /** 帖子详情 */
