@@ -1,6 +1,6 @@
 import type { PostBriefItemData } from '../common/network';
 import { PostListViewModel } from '../viewmodel/PostListViewModel';
-import { ProfilePostItem } from '../components/ProfileListItems';
+import { HomePostItem } from '../components/HomePostItem';
 import type { PostDetailRouteParams } from './PostDetailPage';
 import { levelStore } from '../common/LevelStore';
 
@@ -144,7 +144,7 @@ export struct HomePage {
             LazyForEach(this.vm.dataSource,
               (item: PostBriefItemData) => {
                 ListItem() {
-                  ProfilePostItem(item)
+                  HomePostItem({ item: item })
                 }
                 .margin({ left: 12, right: 12, top: 4, bottom: 4 })
                 .onClick(() => {
