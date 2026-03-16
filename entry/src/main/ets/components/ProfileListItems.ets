@@ -1,4 +1,4 @@
-import type { PostUserItemData, UserBriefData, PostBriefItemData } from '../common/network';
+import type { PostUserItemData, PostBriefItemData } from '../common/network';
 
 // 首页用帖子 item：头像 + 昵称/时间 + 标题 + 摘要 + 底部阅读/评论/点赞
 @Builder
@@ -144,27 +144,6 @@ export function ProfileUserPostItem(item: PostUserItemData) {
     offsetX: 0,
     offsetY: 2
   });
-}
-
-@Builder
-export function ProfileUserBriefItem(item: UserBriefData) {
-  Row() {
-    if (item.avatar !== '') {
-      Image(item.avatar)
-        .width(40)
-        .height(40)
-        .borderRadius(20)
-        .backgroundColor(0xFFE0E0E0);
-    }
-    Column() {
-      Text(item.nickname)
-        .fontSize(15)
-        .fontWeight(FontWeight.Medium);
-    }
-    .margin({ left: 12 });
-    Blank();
-  }
-  .padding({ top: 10, bottom: 10, left: 16, right: 16 });
 }
 
 @Builder

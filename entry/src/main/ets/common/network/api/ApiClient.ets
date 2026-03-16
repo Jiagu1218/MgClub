@@ -766,7 +766,9 @@ export function getFollowList(uid: number, page: number, pageSize: number): Prom
           fansCount: raw.fans,
           followCount: raw.follow,
           postCount: raw.posts,
-          isFollowed: raw.focusHe
+          isFollowed: raw.focusHe,
+          focusHe: raw.focusHe === true,
+          focusMe: raw.focusMe === true
         };
         list.push(item);
       }
@@ -805,7 +807,9 @@ export function getFansList(uid: number, page: number, pageSize: number): Promis
           fansCount: raw.fans,
           followCount: raw.follow,
           postCount: raw.posts,
-          isFollowed: raw.focusMe
+          isFollowed: raw.focusMe,
+          focusHe: raw.focusHe === true,
+          focusMe: raw.focusMe === true
         };
         list.push(item);
       }

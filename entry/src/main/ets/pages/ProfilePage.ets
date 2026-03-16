@@ -1,8 +1,8 @@
 import type { LoginPageRouteParams } from './LoginPage';
 import type { PostUserItemData, UserBriefData, PostBriefItemData } from '../common/network';
 import { ProfileViewModel } from '../viewmodel/ProfileViewModel';
-import { ProfileUserBriefItem } from '../components/ProfileListItems';
 import { HomePostItem } from '../components/HomePostItem';
+import { FollowUserCard } from '../components/FollowUserCard';
 
 @ComponentV2
 export struct ProfilePage {
@@ -178,7 +178,7 @@ export struct ProfilePage {
                       LazyForEach(this.vm.followDataSource,
                         (item: UserBriefData) => {
                           ListItem() {
-                            ProfileUserBriefItem(item);
+                            FollowUserCard({ item: item });
                           }
                         },
                         (item: UserBriefData) => {
@@ -196,7 +196,7 @@ export struct ProfilePage {
                       LazyForEach(this.vm.fansDataSource,
                         (item: UserBriefData) => {
                           ListItem() {
-                            ProfileUserBriefItem(item);
+                            FollowUserCard({ item: item });
                           }
                         },
                         (item: UserBriefData) => {

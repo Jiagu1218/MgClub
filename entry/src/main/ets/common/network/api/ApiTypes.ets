@@ -69,6 +69,8 @@ export interface UserBriefData {
   followCount?: number;
   postCount?: number;
   isFollowed?: boolean;
+  focusHe?: boolean;
+  focusMe?: boolean;
 }
 
 /** 用户数据统计 data */
