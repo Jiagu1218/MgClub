@@ -911,8 +911,10 @@ export async function getPostListBrief(
   if (filter !== undefined) {
     params.push({ key: 'filter', value: filter });
   }
+  // 未登录：使用 /post/list/brief；登录后：使用 /post/list（响应结构保持一致）
+  let path: string = authStore.isLoggedIn() ? '/post/list' : '/post/list/brief';
   let resp: PostListBriefRawResponse = await fetchJson<PostListBriefRawResponse>(
-    buildUrl('/post/list/brief', params),
+    buildUrl(path, params),
     getOptions()
   );
   if (resp.code !== 0) {

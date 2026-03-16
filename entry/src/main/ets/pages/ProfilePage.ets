@@ -1,6 +1,7 @@
 import type { LoginPageRouteParams } from './LoginPage';
 import type { PostUserItemData, UserBriefData, PostBriefItemData } from '../common/network';
 import { ProfileViewModel } from '../viewmodel/ProfileViewModel';
+import { ProfilePostItem, ProfileUserBriefItem, ProfileFavoritePostItem } from '../components/ProfileListItems';
 
 @ComponentV2
 export struct ProfilePage {
@@ -131,14 +132,14 @@ export struct ProfilePage {
                 .fontColor(0xFFFF3B30)
                 .margin({ top: 16 });
             } else {
-              // Tabs 区域占据剩余高度，内部列表高度自适应
+              // Tabs 区域占据剩余高度，内部列表高度自适应（使用公共列表 item 组件）
               Column() {
                 Tabs() {
                   TabContent() {
                     List() {
                       ForEach(this.vm.posts, (item: PostUserItemData) => {
                         ListItem() {
-                          buildProfilePostItem(item);
+                          ProfilePostItem(item);
                         }
                       }, (item: PostUserItemData) => String(item.id));
                     }
@@ -151,7 +152,7 @@ export struct ProfilePage {
                     List() {
                       ForEach(this.vm.followList, (item: UserBriefData) => {
                         ListItem() {
-                          buildProfileUserBriefItem(item);
+                          ProfileUserBriefItem(item);
                         }
                       }, (item: UserBriefData) => String(item.uid));
                     }
@@ -164,7 +165,7 @@ export struct ProfilePage {
                     List() {
                       ForEach(this.vm.fansList, (item: UserBriefData) => {
                         ListItem() {
-                          buildProfileUserBriefItem(item);
+                          ProfileUserBriefItem(item);
                         }
                       }, (item: UserBriefData) => String(item.uid));
                     }
@@ -177,7 +178,7 @@ export struct ProfilePage {
                     List() {
                       ForEach(this.vm.favoriteList, (item: PostBriefItemData) => {
                         ListItem() {
-                          buildProfileFavoriteItem(item);
+                          ProfileFavoritePostItem(item);
                         }
                       }, (item: PostBriefItemData) => String(item.id));
                     }
@@ -204,76 +205,4 @@ export struct ProfilePage {
   }
 }
 
-@Builder
-export function buildProfilePostItem(item: PostUserItemData) {
-  Column() {
-    Text(item.title)
-      .fontSize(16)
-      .fontWeight(FontWeight.Medium);
-    Text(item.summary)
-      .fontSize(13)
-      .fontColor(0xFF666666)
-      .maxLines(2)
-      .textOverflow({ overflow: TextOverflow.Ellipsis })
-      .margin({ top: 4 });
-    Text(item.createdAt)
-      .fontSize(11)
-      .fontColor(0xFF999999)
-      .margin({ top: 6 });
-  }
-  .padding({ top: 10, bottom: 10, left: 16, right: 16 });
-}
-
-@Builder
-export function buildProfileUserBriefItem(item: UserBriefData) {
-  Row() {
-    if (item.avatar !== '') {
-      Image(item.avatar)
-        .width(40)
-        .height(40)
-        .borderRadius(20)
-        .backgroundColor(0xFFE0E0E0);
-    }
-    Column() {
-      Text(item.nickname)
-        .fontSize(15)
-        .fontWeight(FontWeight.Medium);
-    }
-    .margin({ left: 12 });
-    Blank();
-  }
-  .padding({ top: 10, bottom: 10, left: 16, right: 16 });
-}
-
-@Builder
-export function buildProfileFavoriteItem(item: PostBriefItemData) {
-  Row() {
-    if (item.pictures.length > 0) {
-      Image(item.pictures[0])
-        .width(64)
-        .height(64)
-        .borderRadius(8)
-        .backgroundColor(0xFFE0E0E0);
-    }
-    Column() {
-      Text(item.title)
-        .fontSize(15)
-        .fontWeight(FontWeight.Medium);
-      Text(item.summary)
-        .fontSize(12)
-        .fontColor(0xFF666666)
-        .maxLines(2)
-        .textOverflow({ overflow: TextOverflow.Ellipsis })
-        .margin({ top: 4 });
-      Text(item.createdAt)
-        .fontSize(11)
-        .fontColor(0xFF999999)
-        .margin({ top: 6 });
-    }
-    .margin({ left: 12 });
-    Blank();
-  }
-  .padding({ top: 10, bottom: 10, left: 16, right: 16 });
-}
-
-// ProfilePage 内部使用的 Tab 内容 Builder，实现为函数而不是组件方法，避免 ArkUI 结构限制。
+// ProfilePage 内部使用的 Tab 内容已通过 PostSimpleList 和 UserSimpleList 抽成通用组件。
