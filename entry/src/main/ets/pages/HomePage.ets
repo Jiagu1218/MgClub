@@ -1,5 +1,6 @@
 import type { PostBriefItemData } from '../common/network';
 import { PostListViewModel } from '../viewmodel/PostListViewModel';
+import { ProfilePostItem } from '../components/ProfileListItems';
 import type { PostDetailRouteParams } from './PostDetailPage';
 import { levelStore } from '../common/LevelStore';
 
@@ -45,66 +46,6 @@ export struct HomePage {
       .alignItems(VerticalAlign.Center)
       .padding({ left: 16 })
     }
-  }
-
-  @Builder
-  private buildPostItem(item: PostBriefItemData): void {
-    Column() {
-      Text(item.title)
-        .fontSize(16)
-        .fontWeight(FontWeight.Medium)
-        .maxLines(2)
-        .textOverflow({ overflow: TextOverflow.Ellipsis })
-        .margin({ bottom: 6 })
-
-      Text(item.summary)
-        .fontSize(13)
-        .opacity(0.85)
-        .maxLines(2)
-        .textOverflow({ overflow: TextOverflow.Ellipsis })
-        .margin({ bottom: 10 })
-
-      Row() {
-        Text(item.author.nickname)
-          .fontSize(11)
-          .opacity(0.9)
-
-        Text(' · ')
-          .fontSize(11)
-          .opacity(0.6)
-
-        Text(item.createdAt)
-          .fontSize(11)
-          .opacity(0.6)
-
-        Blank()
-
-        Text('👍 ' + item.likeCount)
-          .fontSize(11)
-          .opacity(0.8)
-          .margin({ right: 8 })
-
-        Text('💬 ' + item.replyCount)
-          .fontSize(11)
-          .opacity(0.8)
-      }
-    }
-    .width('100%')
-    .padding({ left: 14, right: 14, top: 12, bottom: 12 })
-    .backgroundColor(Color.White)
-    .borderRadius(10)
-    .height(96)
-    .shadow({
-      radius: 8,
-      color: 0x1A000000,
-      offsetX: 0,
-      offsetY: 2
-    })
-    .onClick(() => {
-      // 使用 Navigation 的 NavPathStack 跳转到帖子详情页面
-      let param: PostDetailRouteParams = { id: item.id };
-      this.pathStack.pushPathByName('PostDetailPage', param);
-    })
   }
 
   @Builder
@@ -201,11 +142,15 @@ export struct HomePage {
         } else {
           List({ space: 8 }) {
             LazyForEach(this.vm.dataSource,
-              (item: PostBriefItemData, index: number) => {
+              (item: PostBriefItemData) => {
                 ListItem() {
-                  this.buildPostItem(item)
+                  ProfilePostItem(item)
                 }
-                .margin({ left: 12, right: 12, top: index === 0 ? 4 : 0, bottom: 4 })
+                .margin({ left: 12, right: 12, top: 4, bottom: 4 })
+                .onClick(() => {
+                  let param: PostDetailRouteParams = { id: item.id };
+                  this.pathStack.pushPathByName('PostDetailPage', param);
+                })
               },
               (item: PostBriefItemData) => {
                 return '' + item.id;

@@ -10,6 +10,7 @@ import type {
 } from '../common/network';
 import { levelStore } from '../common/LevelStore';
 import { authStore } from '../common/AuthStore';
+import { GenericBasicDataSource } from './GenericBasicDataSource';
 
 @ObservedV2
 export class ProfileViewModel {
@@ -26,6 +27,12 @@ export class ProfileViewModel {
   @Trace favoriteList: Array<PostBriefItemData> = [];
   @Trace listLoading: boolean = false;
   @Trace listError: string = '';
+
+  // 懒加载数据源，供 LazyForEach 使用
+  @Trace postsDataSource: GenericBasicDataSource<PostUserItemData> = new GenericBasicDataSource<PostUserItemData>();
+  @Trace followDataSource: GenericBasicDataSource<UserBriefData> = new GenericBasicDataSource<UserBriefData>();
+  @Trace fansDataSource: GenericBasicDataSource<UserBriefData> = new GenericBasicDataSource<UserBriefData>();
+  @Trace favoriteDataSource: GenericBasicDataSource<PostBriefItemData> = new GenericBasicDataSource<PostBriefItemData>();
 
   init(): void {
     this.hasLogin = authStore.isLoggedIn();
@@ -74,6 +81,12 @@ export class ProfileViewModel {
         this.followList = results[1].list;
         this.fansList = results[2].list;
         this.favoriteList = results[3].list;
+
+        // 同步到懒加载数据源
+        this.postsDataSource.setData(results[0].list);
+        this.followDataSource.setData(results[1].list);
+        this.fansDataSource.setData(results[2].list);
+        this.favoriteDataSource.setData(results[3].list);
       } catch (e) {
         this.listError = e instanceof Error ? e.message : String(e);
       } finally {

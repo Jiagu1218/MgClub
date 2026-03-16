@@ -1,7 +1,7 @@
 import type { LoginPageRouteParams } from './LoginPage';
 import type { PostUserItemData, UserBriefData, PostBriefItemData } from '../common/network';
 import { ProfileViewModel } from '../viewmodel/ProfileViewModel';
-import { ProfilePostItem, ProfileUserBriefItem, ProfileFavoritePostItem } from '../components/ProfileListItems';
+import { ProfileUserPostItem, ProfileUserBriefItem, ProfileFavoritePostItem } from '../components/ProfileListItems';
 
 @ComponentV2
 export struct ProfilePage {
@@ -137,11 +137,16 @@ export struct ProfilePage {
                 Tabs() {
                   TabContent() {
                     List() {
-                      ForEach(this.vm.posts, (item: PostUserItemData) => {
-                        ListItem() {
-                          ProfilePostItem(item);
+                      LazyForEach(this.vm.postsDataSource,
+                        (item: PostUserItemData) => {
+                          ListItem() {
+                            ProfileUserPostItem(item);
+                          }
+                        },
+                        (item: PostUserItemData) => {
+                          return String(item.id);
                         }
-                      }, (item: PostUserItemData) => String(item.id));
+                      )
                     }
                     .width('100%')
                     .height(LayoutPolicy.matchParent)
@@ -150,11 +155,16 @@ export struct ProfilePage {
 
                   TabContent() {
                     List() {
-                      ForEach(this.vm.followList, (item: UserBriefData) => {
-                        ListItem() {
-                          ProfileUserBriefItem(item);
+                      LazyForEach(this.vm.followDataSource,
+                        (item: UserBriefData) => {
+                          ListItem() {
+                            ProfileUserBriefItem(item);
+                          }
+                        },
+                        (item: UserBriefData) => {
+                          return String(item.uid);
                         }
-                      }, (item: UserBriefData) => String(item.uid));
+                      )
                     }
                     .width('100%')
                     .height(LayoutPolicy.matchParent)
@@ -163,11 +173,16 @@ export struct ProfilePage {
 
                   TabContent() {
                     List() {
-                      ForEach(this.vm.fansList, (item: UserBriefData) => {
-                        ListItem() {
-                          ProfileUserBriefItem(item);
+                      LazyForEach(this.vm.fansDataSource,
+                        (item: UserBriefData) => {
+                          ListItem() {
+                            ProfileUserBriefItem(item);
+                          }
+                        },
+                        (item: UserBriefData) => {
+                          return String(item.uid);
                         }
-                      }, (item: UserBriefData) => String(item.uid));
+                      )
                     }
                     .width('100%')
                     .height(LayoutPolicy.matchParent)
@@ -176,11 +191,16 @@ export struct ProfilePage {
 
                   TabContent() {
                     List() {
-                      ForEach(this.vm.favoriteList, (item: PostBriefItemData) => {
-                        ListItem() {
-                          ProfileFavoritePostItem(item);
+                      LazyForEach(this.vm.favoriteDataSource,
+                        (item: PostBriefItemData) => {
+                          ListItem() {
+                            ProfileFavoritePostItem(item);
+                          }
+                        },
+                        (item: PostBriefItemData) => {
+                          return String(item.id);
                         }
-                      }, (item: PostBriefItemData) => String(item.id));
+                      )
                     }
                     .width('100%')
                     .height(LayoutPolicy.matchParent)
