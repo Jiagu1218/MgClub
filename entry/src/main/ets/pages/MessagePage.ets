@@ -18,6 +18,7 @@ export struct MessagePage {
 
   @Builder
   private buildChatItem(item: ChatListItemData): void {
+    // 消息卡片使用拟物纸质风格
     Row() {
       Image(item.user.avatar)
         .width(48)
@@ -30,27 +31,33 @@ export struct MessagePage {
           Text(item.user.nickname)
             .fontSize(16)
             .fontWeight(FontWeight.Medium)
+            .fontColor(0xFF333333)
             .maxLines(1)
             .textOverflow({ overflow: TextOverflow.Ellipsis });
+
           if (item.unread > 0) {
             Text(String(item.unread))
               .fontSize(11)
-              .fontColor(Color.White)
+              .fontColor(0xFFFFFFFF)
               .backgroundColor(0xFFFF3B30)
               .padding({ left: 6, right: 6, top: 2, bottom: 2 })
               .borderRadius(10)
               .margin({ left: 6 });
           }
+
           Blank();
+
           Text(item.time)
             .fontSize(12)
-            .opacity(0.6);
+            .fontColor(0xFF999999);
         }
         .width('100%');
 
         Text(item.lastMessage)
           .fontSize(14)
-          .opacity(0.85)
+          .fontColor(0xFF555555)
+          .lineHeight(20)
+          .opacity(0.9)
           .maxLines(2)
           .textOverflow({ overflow: TextOverflow.Ellipsis })
           .margin({ top: 4 });
@@ -61,7 +68,15 @@ export struct MessagePage {
     }
     .width('100%')
     .padding({ left: 16, right: 16, top: 12, bottom: 12 })
-    .backgroundColor(Color.White)
+    .backgroundColor(0xFFFCFAF5)
+    .borderRadius(14)
+    .border({ width: 0.5, color: 0x11AAAAAA })
+    .shadow({
+      radius: 10,
+      color: 0x10000000,
+      offsetX: 0,
+      offsetY: 5
+    })
     .onClick(() => {
       let param: ChatDetailRouteParams = {
         uid: item.user.uid,

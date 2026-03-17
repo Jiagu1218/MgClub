@@ -23,6 +23,7 @@ struct ChatDetailPage {
 
   @Builder
   private buildMessageItem(msg: ChatHistoryItemData): void {
+    // 单条消息使用拟物气泡卡片风格
     Column() {
       Row() {
         if (authStore.getUid() !== msg.from) {
@@ -51,8 +52,9 @@ struct ChatDetailPage {
                 .margin({ top: 4 });
             }
             .padding({ left: 12, right: 12, top: 10, bottom: 10 })
-            .backgroundColor(0xFFE8E8E8)
-            .borderRadius(12)
+            .backgroundColor(0xFFFCFAF5)
+            .borderRadius(14)
+            .border({ width: 0.5, color: 0x11AAAAAA })
             .alignItems(HorizontalAlign.Start)
             .constraintSize({ maxWidth: '80%' });
           }
@@ -81,7 +83,7 @@ struct ChatDetailPage {
               }
               .padding({ left: 12, right: 12, top: 10, bottom: 10 })
               .backgroundColor(0xFF34C759)
-              .borderRadius(12)
+              .borderRadius(14)
               .alignItems(HorizontalAlign.Start)
               .constraintSize({ maxWidth: '80%' });
             }
