@@ -219,6 +219,7 @@ struct PostDetailPage {
 
   @Builder
   private buildSubReply(sub: ReplySubItemData): void {
+    // 子回复视为嵌套的小纸条，使用柔和底色和圆角
     Column() {
       Row() {
         Image(sub.author.avatar)
@@ -281,13 +282,21 @@ struct PostDetailPage {
     .width('100%')
     .alignItems(HorizontalAlign.Start)
     .padding({ left: 12, top: 10, bottom: 10, right: 12 })
-    .backgroundColor(0xFFF5F5F5)
-    .borderRadius(8)
+    .backgroundColor(0xFFFCFAF5)
+    .borderRadius(10)
+    .border({ width: 0.5, color: 0x11AAAAAA })
+    .shadow({
+      radius: 6,
+      color: 0x08000000,
+      offsetX: 0,
+      offsetY: 3
+    })
     .margin({ top: 6 });
   }
 
   @Builder
   private buildCommentItem(item: PostCommentItemData): void {
+    // 顶层评论卡片：拟物纸质效果
     Column() {
       Row() {
         Image(item.user.avatar)
@@ -392,14 +401,21 @@ struct PostDetailPage {
     }
     .width('100%')
     .padding({
-      left: 12,
-      right: 12,
+      left: 14,
+      right: 14,
       top: 12,
       bottom: 14
     })
-    .backgroundColor(Color.White)
-    .borderRadius(12)
+    .backgroundColor(0xFFFCFAF5)
+    .borderRadius(14)
+    .border({ width: 0.5, color: 0x11AAAAAA })
     .alignItems(HorizontalAlign.Start)
+    .shadow({
+      radius: 10,
+      color: 0x10000000,
+      offsetX: 0,
+      offsetY: 5
+    })
     .margin({ bottom: 14 });
   }
   build() {

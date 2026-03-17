@@ -36,6 +36,7 @@ export struct FollowUserCard {
   }
 
   build() {
+    // 拟物风格：将整行视为一张人物信息卡片
     Row() {
       if (this.item.avatar !== '') {
         Image(this.item.avatar)
@@ -86,16 +87,34 @@ export struct FollowUserCard {
       Blank();
 
       // 右侧关注状态：关注 / 已关注 / 互关
+      // 右侧关注状态：做成小胶囊按钮，突出但不突兀
       Text(this.followStatusText)
         .fontSize(12)
-        .fontColor(0xFFFFA14A)
-        .padding({ left: 10, right: 10, top: 4, bottom: 4 })
-        .borderRadius(14)
-        .backgroundColor(0x1AFFA14A);
+        .fontColor(0xFFFF7E3E)
+        .padding({ left: 12, right: 12, top: 4, bottom: 4 })
+        .borderRadius(16)
+        .backgroundColor(0x1AFFE0C0);
     }
     .width('100%')
-    .padding({ top: 10, bottom: 10, left: 16, right: 16 })
-    .alignItems(VerticalAlign.Center);
+    .padding({ top: 12, bottom: 12, left: 16, right: 16 })
+    .alignItems(VerticalAlign.Center)
+    // 与帖子卡片统一的纸质背景和圆角
+    .backgroundColor(0xFFFCFAF5)
+    .borderRadius(14)
+    .border({ width: 0.5, color: 0x11AAAAAA })
+    // 双层阴影增强拟物立体感
+    .shadow({
+      radius: 12,
+      color: 0x0F000000,
+      offsetX: 0,
+      offsetY: 6
+    })
+    .shadow({
+      radius: 4,
+      color: 0x22000000,
+      offsetX: 0,
+      offsetY: 2
+    });
   }
 }
 

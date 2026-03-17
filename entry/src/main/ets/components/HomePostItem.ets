@@ -24,6 +24,7 @@ export struct HomePostItem {
   }
 
   build() {
+    // 外层视为一张“纸质卡片”，使用更立体的阴影和柔和底色
     Column() {
       // 顶部：发帖人信息（头像 + 昵称/时间/等级），置顶贴不展示
       if (!this.isTop) {
@@ -66,21 +67,23 @@ export struct HomePostItem {
         .alignItems(VerticalAlign.Center)
       }
 
-      // 标题（深色）
+      // 标题（深色，略大行高，类似杂志标题）
       Text(this.item.title)
         .fontSize(16)
         .fontWeight(FontWeight.Medium)
         .fontColor(0xFF333333)
+        .lineHeight(22)
         .maxLines(2)
         .textOverflow({ overflow: TextOverflow.Ellipsis })
-        .margin({ top: 8 });
+        .margin({ top: 10, bottom: 2 });
 
-      // 内容摘要
+      // 内容摘要（更大的行高，增强“纸面排版”感）
       if (this.item.summary !== '') {
         Text(this.item.summary)
           .fontSize(13)
           .fontColor(0xFF666666)
           .opacity(0.95)
+          .lineHeight(20)
           .maxLines(3)
           .textOverflow({ overflow: TextOverflow.Ellipsis })
           .margin({ top: 4 });
@@ -90,18 +93,18 @@ export struct HomePostItem {
       if (!this.isTop) {
         Row() {
           Row() {
-            Text('阅 ')
+            Text('👁 ')
               .fontSize(11)
-              .fontColor(0xFFBBBBBB);
+              .fontColor(0xFFB0B0B0);
             Text(String(this.item.readings))
               .fontSize(11)
               .fontColor(0xFF999999);
           }
 
           Row() {
-            Text(' 评 ')
+            Text(' 💬 ')
               .fontSize(11)
-              .fontColor(0xFFBBBBBB)
+              .fontColor(0xFFB0B0B0)
               .margin({ left: 16 });
             Text(String(this.item.replyCount))
               .fontSize(11)
@@ -109,9 +112,9 @@ export struct HomePostItem {
           }
 
           Row() {
-            Text(' 赞 ')
+            Text(' 👍 ')
               .fontSize(11)
-              .fontColor(0xFFBBBBBB)
+              .fontColor(0xFFB0B0B0)
               .margin({ left: 16 });
             Text(String(this.item.likeCount))
               .fontSize(11)
@@ -122,13 +125,22 @@ export struct HomePostItem {
       }
     }
     .width('100%')
-    .padding({ left: 14, right: 14, top: 10, bottom: 10 })
-    .backgroundColor(0xFFFFFFFF)
-    .borderRadius(10)
+    .padding({ left: 16, right: 16, top: 12, bottom: 12 })
+    // 轻微暖色底，模拟纸质材质
+    .backgroundColor(0xFFFCFAF5)
+    .borderRadius(14)
+    .border({ width: 0.5, color: 0x11AAAAAA })
     .alignItems(HorizontalAlign.Start) // 整卡片内容左对齐
+    // 双层阴影，增强立体拟物感
     .shadow({
-      radius: 6,
-      color: 0x14000000,
+      radius: 12,
+      color: 0x0F000000,
+      offsetX: 0,
+      offsetY: 6
+    })
+    .shadow({
+      radius: 4,
+      color: 0x22000000,
       offsetX: 0,
       offsetY: 2
     });
