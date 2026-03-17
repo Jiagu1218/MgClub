@@ -1,4 +1,5 @@
 import type { LoginPageRouteParams } from './LoginPage';
+import type { PostDetailRouteParams } from './PostDetailPage';
 import type { PostUserItemData, UserBriefData, PostBriefItemData } from '../common/network';
 import { ProfileViewModel } from '../viewmodel/ProfileViewModel';
 import { HomePostItem } from '../components/HomePostItem';
@@ -162,6 +163,10 @@ export struct ProfilePage {
                               isTop: false
                             });
                           }
+                          .onClick(() => {
+                            let param: PostDetailRouteParams = { id: item.id };
+                            this.pathStack.pushPathByName('PostDetailPage', param);
+                          })
                         },
                         (item: PostUserItemData) => {
                           return String(item.id);
@@ -216,6 +221,10 @@ export struct ProfilePage {
                           ListItem() {
                             HomePostItem({ item: item, isTop: false });
                           }
+                          .onClick(() => {
+                            let param: PostDetailRouteParams = { id: item.id };
+                            this.pathStack.pushPathByName('PostDetailPage', param);
+                          })
                         },
                         (item: PostBriefItemData) => {
                           return String(item.id);

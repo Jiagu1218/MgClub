@@ -93,7 +93,9 @@ export struct FollowUserCard {
         .borderRadius(14)
         .backgroundColor(0x1AFFA14A);
     }
-    .padding({ top: 10, bottom: 10, left: 16, right: 16 });
+    .width('100%')
+    .padding({ top: 10, bottom: 10, left: 16, right: 16 })
+    .alignItems(VerticalAlign.Center);
   }
 }
 
