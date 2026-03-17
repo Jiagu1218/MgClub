@@ -5,6 +5,10 @@ import { ProfileViewModel } from '../viewmodel/ProfileViewModel';
 import { HomePostItem } from '../components/HomePostItem';
 import { FollowUserCard } from '../components/FollowUserCard';
 
+interface UserProfileRouteParams {
+  uid: number;
+}
+
 @ComponentV2
 export struct ProfilePage {
   private pathStack: NavPathStack = new NavPathStack();
@@ -185,6 +189,10 @@ export struct ProfilePage {
                           ListItem() {
                             FollowUserCard({ item: item });
                           }
+                          .onClick(() => {
+                            let param: UserProfileRouteParams = { uid: item.uid };
+                            this.pathStack.pushPathByName('UserProfilePage', param);
+                          })
                         },
                         (item: UserBriefData) => {
                           return String(item.uid);
@@ -203,6 +211,10 @@ export struct ProfilePage {
                           ListItem() {
                             FollowUserCard({ item: item });
                           }
+                          .onClick(() => {
+                            let param: UserProfileRouteParams = { uid: item.uid };
+                            this.pathStack.pushPathByName('UserProfilePage', param);
+                          })
                         },
                         (item: UserBriefData) => {
                           return String(item.uid);

@@ -14,6 +14,11 @@
       "name": "ChatDetailPage",
       "pageSourceFile": "src/main/ets/pages/ChatDetailPage.ets",
       "buildFunction": "ChatDetailPageBuilder"
+    },
+    {
+      "name": "UserProfilePage",
+      "pageSourceFile": "src/main/ets/pages/UserProfilePage.ets",
+      "buildFunction": "UserProfilePageBuilder"
     }
   ]
 }
