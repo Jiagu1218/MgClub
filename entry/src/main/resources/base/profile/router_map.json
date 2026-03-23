@@ -19,6 +19,11 @@
       "name": "UserProfilePage",
       "pageSourceFile": "src/main/ets/pages/UserProfilePage.ets",
       "buildFunction": "UserProfilePageBuilder"
+    },
+    {
+      "name": "ImageViewerPage",
+      "pageSourceFile": "src/main/ets/pages/ImageViewerPage.ets",
+      "buildFunction": "ImageViewerPageBuilder"
     }
   ]
 }

@@ -1,7 +1,8 @@
-import type { PostDetailData, PostCommentItemData, ReplySubItemData } from '../common/network';
+import type { PostCommentItemData, ReplySubItemData } from '../common/network';
 import { PostDetailViewModel, PostContentBlock } from '../viewmodel/PostDetailViewModel';
 import { CustomTransition } from '../common/CustomNavigationUtils';
 import { windowUtil } from '../common/WindowUtil';
+import type { ImageViewerRouteParams } from './ImageViewerPage';
 
 export interface PostDetailRouteParams {
   id?: number | string;
@@ -11,6 +12,7 @@ export interface PostDetailRouteParams {
 @ComponentV2
 struct PostDetailPage {
   @Local vm: PostDetailViewModel = new PostDetailViewModel();
+  private pathStack: NavPathStack = new NavPathStack();
   // 用于翻页风格动画的位移与缩放
   @Local translateX: string = '0';
   @Local contentScale: number = 1.0;
@@ -52,6 +54,11 @@ struct PostDetailPage {
         }
       }
     );
+
+    let navigationInfo: NavigationInfo = this.queryNavigationInfo() as NavigationInfo;
+    if (navigationInfo !== undefined) {
+      this.pathStack = navigationInfo.pathStack;
+    }
   }
 
   aboutToDisappear(): void {
@@ -99,26 +106,38 @@ struct PostDetailPage {
                 .height(block.height)
                 .borderRadius(8)
                 .backgroundColor(0xFFE5E5E5)
-                .margin({ top: 4, bottom: 8 });
+                .margin({ top: 4, bottom: 8 })
+                .onClick(() => {
+                  this.openContentImageViewer(block.src);
+                });
             } else if (block.width !== undefined) {
               Image(block.src)
                 .width(block.width)
                 .borderRadius(8)
                 .backgroundColor(0xFFE5E5E5)
-                .margin({ top: 4, bottom: 8 });
+                .margin({ top: 4, bottom: 8 })
+                .onClick(() => {
+                  this.openContentImageViewer(block.src);
+                });
             } else if (block.height !== undefined) {
               Image(block.src)
                 .height(block.height)
                 .borderRadius(8)
                 .backgroundColor(0xFFE5E5E5)
-                .margin({ top: 4, bottom: 8 });
+                .margin({ top: 4, bottom: 8 })
+                .onClick(() => {
+                  this.openContentImageViewer(block.src);
+                });
             } else {
               Image(block.src)
                 .width('100%')
                 .objectFit(ImageFit.Contain)
                 .borderRadius(8)
                 .backgroundColor(0xFFE5E5E5)
-                .margin({ top: 4, bottom: 8 });
+                .margin({ top: 4, bottom: 8 })
+                .onClick(() => {
+                  this.openContentImageViewer(block.src);
+                });
             }
           }
         })
@@ -216,17 +235,67 @@ struct PostDetailPage {
   @Builder
   private buildImageGrid(pictures: Array<string>): void {
     Column() {
-      ForEach(pictures, (url: string) => {
+      ForEach(pictures, (url: string, index: number) => {
         Image(url)
           .width('100%')
           .aspectRatio(1.2)
           .objectFit(ImageFit.Cover)
           .borderRadius(8)
           .backgroundColor(0xFFE5E5E5)
-          .margin({ bottom: 8 });
+          .margin({ bottom: 8 })
+          .onClick(() => {
+            this.openImageViewer(pictures, index);
+          });
       })
     }
     .margin({ top: 8, bottom: 8 });
+  }
+
+  private openImageViewer(images: Array<string>, index: number): void {
+    if (images.length === 0) {
+      return;
+    }
+    let startIndex: number = index;
+    if (startIndex < 0) {
+      startIndex = 0;
+    }
+    if (startIndex >= images.length) {
+      startIndex = images.length - 1;
+    }
+    let param: ImageViewerRouteParams = {
+      images: images,
+      index: startIndex
+    };
+    this.pathStack.pushPathByName('ImageViewerPage', param);
+  }
+
+  private getContentImageUrls(): Array<string> {
+    let urls: Array<string> = [];
+    let i: number;
+    for (i = 0; i < this.vm.contentBlocks.length; i++) {
+      let block: PostContentBlock = this.vm.contentBlocks[i];
+      if (block.type === 'image' && block.src.length > 0) {
+        urls.push(block.src);
+      }
+    }
+    return urls;
+  }
+
+  private openContentImageViewer(currentSrc: string): void {
+    let images: Array<string> = this.getContentImageUrls();
+    if (images.length === 0) {
+      this.openImageViewer([currentSrc], 0);
+      return;
+    }
+    let i: number;
+    let index: number = 0;
+    for (i = 0; i < images.length; i++) {
+      if (images[i] === currentSrc) {
+        index = i;
+        break;
+      }
+    }
+    this.openImageViewer(images, index);
   }
 
   @Builder
