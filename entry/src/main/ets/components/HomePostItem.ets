@@ -1,10 +1,23 @@
 import type { PostBriefItemData, LevelItemData } from '../common/network';
 import { levelStore } from '../common/LevelStore';
 
+@ReusableV2
 @ComponentV2
 export struct HomePostItem {
   @Require @Param item: PostBriefItemData;
   @Param isTop: boolean = false;
+  @Event onOpen: (id: number) => void = (_id: number): void => {};
+  @Local isPressed: boolean = false;
+
+  aboutToRecycle(): void {
+    // 回收到复用池前清理临时交互态，避免复用后出现残留按压视觉
+    this.isPressed = false;
+  }
+
+  aboutToReuse(): void {
+    // 从复用池取出后兜底重置交互态
+    this.isPressed = false;
+  }
 
   @Computed
   get levelText(): string {
@@ -127,7 +140,7 @@ export struct HomePostItem {
     .width('100%')
     .padding({ left: 16, right: 16, top: 12, bottom: 12 })
     // 轻微暖色底，模拟纸质材质
-    .backgroundColor(0xFFFCFAF5)
+    .backgroundColor(this.isPressed ? 0xFFF2EFE8 : 0xFFFCFAF5)
     .borderRadius(14)
     .border({ width: 0.5, color: 0x11AAAAAA })
     .alignItems(HorizontalAlign.Start) // 整卡片内容左对齐
@@ -143,6 +156,16 @@ export struct HomePostItem {
       color: 0x22000000,
       offsetX: 0,
       offsetY: 2
+    })
+    .onTouch((event: TouchEvent) => {
+      if (event.type === TouchType.Down) {
+        this.isPressed = true;
+        return;
+      }
+      this.isPressed = false;
+    })
+    .onClick(() => {
+      this.onOpen(this.item.id);
     });
   }
 }

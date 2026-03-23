@@ -1,4 +1,3 @@
-import type { PostBriefItemData } from '../common/network';
 import { PostListViewModel } from '../viewmodel/PostListViewModel';
 import { HomePostItem } from '../components/HomePostItem';
 import type { PostDetailRouteParams } from './PostDetailPage';
@@ -141,21 +140,25 @@ export struct HomePage {
           .edgeEffect(EdgeEffect.None)
         } else {
           List({ space: 8 }) {
-            LazyForEach(this.vm.dataSource,
-              (item: PostBriefItemData) => {
+            Repeat(this.vm.postList)
+              .virtualScroll()
+              .each((obj) => {
                 ListItem() {
-                  HomePostItem({ item: item })
+                  HomePostItem({
+                    item: obj.item,
+                    onOpen: (id: number): void => {
+                      let param: PostDetailRouteParams = { id: id };
+                      this.pathStack.pushPathByName('PostDetailPage', param);
+                    }
+                  })
+                    .reuse({
+                      reuseId: (): string => {
+                        return 'home_post_item';
+                      }
+                    })
                 }
                 .margin({ left: 12, right: 12, top: 4, bottom: 4 })
-                .onClick(() => {
-                  let param: PostDetailRouteParams = { id: item.id };
-                  this.pathStack.pushPathByName('PostDetailPage', param);
-                })
-              },
-              (item: PostBriefItemData) => {
-                return '' + item.id;
-              }
-            )
+              })
           }
           .width('100%')
           .height('100%')
