@@ -1,5 +1,5 @@
 import { pageUiService } from '../common/PageUiService';
-import { ImageViewerViewModel, ReboundTarget } from '../viewmodel/ImageViewerViewModel';
+import { ImageViewerViewModel, ReboundTarget, TouchHandleResult } from '../viewmodel/ImageViewerViewModel';
 
 export interface ImageViewerRouteParams {
   images?: Array<string>;
@@ -36,6 +36,24 @@ struct ImageViewerPage {
     this.vm.wakeToolbarAndSchedule();
   }
 
+  private handleTouchResult(result: TouchHandleResult): void {
+    if (result.shouldPop) {
+      this.popPage();
+      return;
+    }
+    let target: ReboundTarget | null = result.reboundTarget;
+    if (target === null) {
+      return;
+    }
+    let reboundTarget: ReboundTarget = target;
+    this.getUIContext().animateTo({
+      duration: reboundTarget.duration,
+      curve: Curve.EaseOut
+    }, () => {
+      this.vm.applyReboundTarget(reboundTarget);
+    });
+  }
+
   private animateRebound(target: ReboundTarget | null): void {
     if (target === null) {
       return;
@@ -70,7 +88,7 @@ struct ImageViewerPage {
             .justifyContent(FlexAlign.Center)
             .alignItems(HorizontalAlign.Center)
             .onTouch((event: TouchEvent) => {
-              this.animateRebound(this.vm.handleImageTouch(event));
+              this.handleTouchResult(this.vm.handleImageTouch(event));
             });
           } else {
             Swiper() {
@@ -92,7 +110,7 @@ struct ImageViewerPage {
                 .justifyContent(FlexAlign.Center)
                 .alignItems(HorizontalAlign.Center)
                 .onTouch((event: TouchEvent) => {
-                  this.animateRebound(this.vm.handleImageTouch(event));
+                  this.handleTouchResult(this.vm.handleImageTouch(event));
                 });
               })
             }

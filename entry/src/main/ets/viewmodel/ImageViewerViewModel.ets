@@ -6,6 +6,11 @@ export interface ReboundTarget {
   duration: number;
 }
 
+export interface TouchHandleResult {
+  reboundTarget: ReboundTarget | null;
+  shouldPop: boolean;
+}
+
 @ObservedV2
 export class ImageViewerViewModel {
   @Trace images: Array<string> = [];
@@ -208,7 +213,7 @@ export class ImageViewerViewModel {
     this.translateY = target.y;
   }
 
-  handleImageTouch(event: TouchEvent): ReboundTarget | null {
+  handleImageTouch(event: TouchEvent): TouchHandleResult {
     if (event.type === TouchType.Down) {
       if (event.touches.length === 1) {
         this.dragStartX = this.readTouchX(event.touches[0]);
@@ -226,7 +231,7 @@ export class ImageViewerViewModel {
         this.pinchStartScale = this.zoomScale;
         this.gestureMoved = false;
       }
-      return null;
+      return { reboundTarget: null, shouldPop: false };
     }
 
     if (event.type === TouchType.Move) {
@@ -245,7 +250,7 @@ export class ImageViewerViewModel {
           this.translateX = this.clampTranslateX(this.translateX);
           this.translateY = this.clampTranslateY(this.translateY);
         }
-        return null;
+        return { reboundTarget: null, shouldPop: false };
       }
       if (event.touches.length === 1 && this.zoomScale > 1) {
         let nowMs: number = Date.now();
@@ -269,25 +274,25 @@ export class ImageViewerViewModel {
           this.lastMoveY = currentY;
         }
       }
-      return null;
+      return { reboundTarget: null, shouldPop: false };
     }
 
     if (event.type !== TouchType.Up) {
-      return null;
+      return { reboundTarget: null, shouldPop: false };
     }
 
     if (event.touches.length > 1) {
-      return null;
+      return { reboundTarget: null, shouldPop: false };
     }
 
     if (this.gestureMoved && this.zoomScale > 1) {
       this.gestureMoved = false;
       this.wakeToolbarAndSchedule();
-      return this.buildReboundTarget(true);
+      return { reboundTarget: this.buildReboundTarget(true), shouldPop: false };
     }
 
     if (event.changedTouches.length === 0) {
-      return null;
+      return { reboundTarget: null, shouldPop: false };
     }
     let upX: number = this.readTouchX(event.changedTouches[0]);
     let upY: number = this.readTouchY(event.changedTouches[0]);
@@ -303,7 +308,11 @@ export class ImageViewerViewModel {
       }
       this.toggleZoomByDoubleTap(upX, upY);
       this.lastTapTimeMs = 0;
-      return null;
+      return { reboundTarget: null, shouldPop: false };
+    }
+
+    if (this.shouldPopOnSingleTap(upX, upY)) {
+      return { reboundTarget: null, shouldPop: true };
     }
 
     if (this.singleTapTimer >= 0) {
@@ -317,12 +326,12 @@ export class ImageViewerViewModel {
         this.clearAutoHideTimer();
       }
       this.singleTapTimer = -1;
-    }, 300);
+    }, 260);
 
     this.lastTapTimeMs = nowMs;
     this.lastTapX = upX;
     this.lastTapY = upY;
-    return null;
+    return { reboundTarget: null, shouldPop: false };
   }
 
   private readTouchX(touch: TouchObject): number {
@@ -406,6 +415,43 @@ export class ImageViewerViewModel {
       return 1.9;
     }
     return 2.2;
+  }
+
+  private shouldPopOnSingleTap(tapX: number, tapY: number): boolean {
+    if (this.zoomScale > 1) {
+      return false;
+    }
+    let url: string = this.getCurrentUrl();
+    if (url.length === 0) {
+      return false;
+    }
+    let naturalWidth: number = this.naturalWidthMap.get(url) ?? 0;
+    let naturalHeight: number = this.naturalHeightMap.get(url) ?? 0;
+    if (naturalWidth <= 0 || naturalHeight <= 0) {
+      return false;
+    }
+    let viewportW: number = this.viewportWidth;
+    let viewportH: number = this.viewportHeight;
+    if (viewportW <= 0 || viewportH <= 0) {
+      return false;
+    }
+    let imageAspect: number = naturalWidth / naturalHeight;
+    let viewportAspect: number = viewportW / viewportH;
+    let displayW: number = viewportW;
+    let displayH: number = viewportH;
+    if (viewportAspect > imageAspect) {
+      displayH = viewportH;
+      displayW = displayH * imageAspect;
+    } else {
+      displayW = viewportW;
+      displayH = displayW / imageAspect;
+    }
+    let left: number = (viewportW - displayW) / 2;
+    let top: number = (viewportH - displayH) / 2;
+    let right: number = left + displayW;
+    let bottom: number = top + displayH;
+    let isInsideImage: boolean = tapX >= left && tapX <= right && tapY >= top && tapY <= bottom;
+    return !isInsideImage;
   }
 
   private toggleZoomByDoubleTap(focusX: number, focusY: number): void {
