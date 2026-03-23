@@ -45,6 +45,8 @@ export struct HomePage {
       .alignItems(VerticalAlign.Center)
       .padding({ left: 16 })
     }
+    .backgroundColor(0xFFFFFFFF)
+    .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.TOP])
   }
 
   @Builder

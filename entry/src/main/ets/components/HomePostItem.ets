@@ -36,6 +36,66 @@ export struct HomePostItem {
     return 'Lv' + String(level);
   }
 
+  @Computed
+  get safePictures(): Array<string> {
+    if (this.item.pictures === undefined) {
+      return [];
+    }
+    return this.item.pictures;
+  }
+
+  @Computed
+  get displayPictureCount(): number {
+    let count: number = this.safePictures.length;
+    if (count > 9) {
+      return 9;
+    }
+    return count;
+  }
+
+  @Computed
+  get pictureIndexes(): Array<number> {
+    let indexes: Array<number> = [];
+    let i: number;
+    for (i = 0; i < this.displayPictureCount; i++) {
+      indexes.push(i);
+    }
+    return indexes;
+  }
+
+  @Computed
+  get pictureColumnsTemplate(): string {
+    if (this.displayPictureCount === 4) {
+      return '1fr 1fr';
+    }
+    return '1fr 1fr 1fr';
+  }
+
+  @Builder
+  private buildPictureGrid(): void {
+    if (this.displayPictureCount > 0) {
+      Grid() {
+        ForEach(this.pictureIndexes, (index: number) => {
+          GridItem() {
+            Image(this.safePictures[index])
+              .width('100%')
+              .aspectRatio(1)
+              .objectFit(ImageFit.Cover)
+              .borderRadius(8)
+              .backgroundColor(0xFFEFEFEF);
+          }
+        }, (index: number) => {
+          return String(index);
+        })
+      }
+      .width('100%')
+      .columnsTemplate(this.pictureColumnsTemplate)
+      .rowsGap(6)
+      .columnsGap(6)
+      .margin({ top: 8 });
+    }
+  }
+
   build() {
     // 外层视为一张“纸质卡片”，使用更立体的阴影和柔和底色
     Column() {
@@ -101,6 +161,8 @@ export struct HomePostItem {
           .textOverflow({ overflow: TextOverflow.Ellipsis })
           .margin({ top: 4 });
       }
+
+      this.buildPictureGrid();
 
       // 帖子数据（阅读 / 评论 / 点赞），置顶贴不展示
       if (!this.isTop) {
