@@ -517,8 +517,184 @@ interface AuthLoginRawResponse {
 /** 基础域名 */
 const BASE_URL: string = 'https://2550505.com';
 
+class CookiePair {
+  name: string = '';
+  value: string = '';
+}
+
+class InMemoryCookieJar {
+  private cookieMap: Map<string, string> = new Map<string, string>();
+  private readonly reservedAttrs: Array<string> = [
+    'path',
+    'domain',
+    'expires',
+    'max-age',
+    'secure',
+    'httponly',
+    'samesite',
+    'priority',
+    'partitioned'
+  ];
+
+  private isReservedAttrName(name: string): boolean {
+    let lower: string = name.toLowerCase();
+    let i: number;
+    for (i = 0; i < this.reservedAttrs.length; i++) {
+      if (this.reservedAttrs[i] === lower) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private extractCookiePairs(cookieText: string): Array<CookiePair> {
+    let pairs: Array<CookiePair> = [];
+    let reg: RegExp = /(?:^|,\s*|;\s*)([A-Za-z0-9_\-]+)=([^;,\s]+)/g;
+    let matched: RegExpExecArray | null = reg.exec(cookieText);
+    while (matched !== null) {
+      let name: string = matched[1];
+      let value: string = matched[2];
+      if (!this.isReservedAttrName(name) && name !== '') {
+        let pair: CookiePair = new CookiePair();
+        pair.name = name;
+        pair.value = value;
+        pairs.push(pair);
+      }
+      matched = reg.exec(cookieText);
+    }
+    return pairs;
+  }
+
+  public saveFromSetCookieText(cookieText: string): void {
+    if (cookieText === '') {
+      return;
+    }
+    let pairs: Array<CookiePair> = this.extractCookiePairs(cookieText);
+    let i: number;
+    for (i = 0; i < pairs.length; i++) {
+      this.cookieMap.set(pairs[i].name, decodeURIComponent(pairs[i].value));
+    }
+  }
+
+  public buildCookieHeader(): string {
+    if (this.cookieMap.size === 0) {
+      return '';
+    }
+    let parts: Array<string> = [];
+    this.cookieMap.forEach((value: string, key: string) => {
+      parts.push(key + '=' + encodeURIComponent(value));
+    });
+    return parts.join('; ');
+  }
+}
+
+const cookieJar: InMemoryCookieJar = new InMemoryCookieJar();
+
+class AuthTokenInterceptor implements rcp.Interceptor {
+  private readonly skipTokenPathPrefixes: Array<string> = [
+    '/auth/',
+    '/version'
+  ];
+
+  private shouldSkipToken(urlText: string): boolean {
+    let i: number;
+    for (i = 0; i < this.skipTokenPathPrefixes.length; i++) {
+      let prefix: string = this.skipTokenPathPrefixes[i];
+      if (urlText.indexOf(prefix) >= 0) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  async intercept(context: rcp.RequestContext, next: rcp.RequestHandler): Promise<rcp.Response> {
+    let requestUrlText: string = String(context.request.url);
+    let existedCookie: string = '';
+    if (context.request.headers !== undefined && context.request.headers['cookie'] !== undefined) {
+      existedCookie = String(context.request.headers['cookie']);
+    }
+    let jarCookie: string = cookieJar.buildCookieHeader();
+    let mergedCookie: string = existedCookie;
+    if (jarCookie !== '') {
+      mergedCookie = jarCookie;
+      if (existedCookie !== '') {
+        mergedCookie = existedCookie + '; ' + jarCookie;
+      }
+    }
+
+    if (this.shouldSkipToken(requestUrlText)) {
+      if (mergedCookie !== '') {
+        if (context.request.headers === undefined) {
+          context.request.headers = {};
+        }
+        context.request.headers['cookie'] = mergedCookie;
+      }
+      return next.handle(context);
+    }
+
+    if (authStore.isLoggedIn()) {
+      let token: string = authStore.getToken();
+      if (token !== '') {
+        let tokenCookie: string = 'token=' + token;
+        if (mergedCookie === '') {
+          mergedCookie = tokenCookie;
+        } else {
+          mergedCookie = mergedCookie + '; ' + tokenCookie;
+        }
+      }
+    }
+    if (mergedCookie !== '') {
+      if (context.request.headers === undefined) {
+        context.request.headers = {};
+      }
+      context.request.headers['cookie'] = mergedCookie;
+    }
+    return next.handle(context);
+  }
+}
+
+class CookieReceiveInterceptor implements rcp.Interceptor {
+  private extractSetCookieText(response: rcp.Response): string {
+    if (response.headers === undefined) {
+      return '';
+    }
+    if (response.headers['set-cookie'] !== undefined) {
+      return String(response.headers['set-cookie']);
+    }
+    if (response.headers['Set-Cookie'] !== undefined) {
+      return String(response.headers['Set-Cookie']);
+    }
+    return String(response.headers);
+  }
+
+  async intercept(context: rcp.RequestContext, next: rcp.RequestHandler): Promise<rcp.Response> {
+    let response: rcp.Response = await next.handle(context);
+    let setCookieText: string = this.extractSetCookieText(response);
+    cookieJar.saveFromSetCookieText(setCookieText);
+    let token: string = '';
+    let cookieHeader: string = cookieJar.buildCookieHeader();
+    let matched: RegExpMatchArray | null = cookieHeader.match(/(?:^|[;\s])token=([^;\s]+)/);
+    if (matched !== null && matched.length > 1) {
+      token = decodeURIComponent(matched[1]);
+    }
+    if (token !== '' && token !== authStore.getToken()) {
+      authStore.saveToken(token);
+    }
+    return response;
+  }
+}
+
 /** 全局 RCP 客户端（内部使用） */
-const rcpClient: RcpClient = new RcpClient();
+const rcpClient: RcpClient = new RcpClient({
+  poolConfig: {
+    maxSessions: 16,
+    coreSessions: 4,
+    lookPrefix: 'api_client',
+    sessionConfiguration: {
+      interceptors: [new AuthTokenInterceptor(), new CookieReceiveInterceptor()]
+    }
+  }
+});
 /** Query 参数项，用于 GET 拼接 */
 export interface QueryParam {
   key: string;
@@ -563,12 +739,6 @@ function buildRcpRequest(url: string, options: HttpPoolRequestOptions): rcp.Requ
 
 async function fetchJson<T>(url: string, options: HttpPoolRequestOptions): Promise<T> {
   let request: rcp.Request = buildRcpRequest(url, options);
-  // 如果已登录，则添加 cookie
-  if (authStore.isLoggedIn()) {
-    request.headers = {
-      'cookie': 'token=' + authStore.getToken()
-    }
-  }
   let res: T = await rcpClient.request<T>(request);
   return res;
 }

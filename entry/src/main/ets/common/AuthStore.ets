@@ -63,6 +63,20 @@ export class AuthStore {
       hilog.error(DOMAIN_AUTH, 'AuthStore', 'saveLogin failed: %{public}s', JSON.stringify(err));
     }
   }
+
+  async saveToken(token: string): Promise<void> {
+    this.token = token;
+    if (this.context === undefined) {
+      return;
+    }
+    try {
+      let pref: preferences.Preferences = await preferences.getPreferences(this.context, PREFERENCES_NAME);
+      await pref.put(KEY_TOKEN, token);
+      await pref.flush();
+    } catch (err) {
+      hilog.error(DOMAIN_AUTH, 'AuthStore', 'saveToken failed: %{public}s', JSON.stringify(err));
+    }
+  }
 }
 
 export const authStore: AuthStore = AuthStore.getInstance();
