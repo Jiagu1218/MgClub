@@ -123,7 +123,9 @@ struct PostDetailPage {
           }
         })
 
-        this.buildImageGrid(this.vm.detail!.pictures);
+        if (!this.hasImageBlockInContent()) {
+          this.buildImageGrid(this.vm.detail!.pictures);
+        }
 
         Row() {
           Text('👍 ' + this.vm.detail!.likeCount)
@@ -199,6 +201,16 @@ struct PostDetailPage {
     .layoutWeight(1)
     .scrollBar(BarState.Off)
     .edgeEffect(EdgeEffect.Spring);
+  }
+
+  private hasImageBlockInContent(): boolean {
+    let i: number;
+    for (i = 0; i < this.vm.contentBlocks.length; i++) {
+      if (this.vm.contentBlocks[i].type === 'image') {
+        return true;
+      }
+    }
+    return false;
   }
 
   @Builder
