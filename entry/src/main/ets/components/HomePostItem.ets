@@ -1,4 +1,4 @@
-import type { PostBriefItemData, LevelItemData } from '../common/network';
+import type { PostBriefItemData, LevelItemData, PostPictureData } from '../common/network';
 import { levelStore } from '../common/LevelStore';
 
 @ReusableV2
@@ -37,7 +37,7 @@ export struct HomePostItem {
   }
 
   @Computed
-  get safePictures(): Array<string> {
+  get safePictures(): Array<PostPictureData> {
     if (this.item.pictures === undefined) {
       return [];
     }
@@ -77,7 +77,7 @@ export struct HomePostItem {
       Grid() {
         ForEach(this.pictureIndexes, (index: number) => {
           GridItem() {
-            Image(this.safePictures[index])
+            Image(this.safePictures[index].thumbnail)
               .width('100%')
               .aspectRatio(1)
               .objectFit(ImageFit.Cover)

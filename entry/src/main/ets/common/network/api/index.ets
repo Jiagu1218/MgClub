@@ -15,6 +15,7 @@ export type {
   UserDataCountData,
   PagedListData,
   PostBriefItemData,
+  PostPictureData,
   PostUserItemData,
   PostSearchData,
   PostSearchItemData,

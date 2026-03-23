@@ -90,6 +90,12 @@ export interface PagedListData<T> {
 }
 
 /** 帖子简要项 */
+export interface PostPictureData {
+  thumbnail: string;
+  original: string;
+}
+
+/** 帖子简要项 */
 export interface PostBriefItemData {
   id: number;
   title: string;
@@ -99,7 +105,7 @@ export interface PostBriefItemData {
   replyCount: number;
   favoriteCount: number;
   createdAt: string;
-  pictures: Array<string>;
+  pictures: Array<PostPictureData>;
   readings: number;
 }
 
@@ -113,7 +119,7 @@ export interface PostUserItemData {
   replyCount: number;
   // 以下字段来自 /post/user/list，用于“我的-动态”展示更完整信息
   readings?: number;
-  pictures?: Array<string>;
+  pictures?: Array<PostPictureData>;
   author?: UserBriefData;
 }
 

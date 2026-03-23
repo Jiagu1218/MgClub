@@ -19,6 +19,7 @@ import type {
   UserDataCountData,
   PagedListData,
   PostBriefItemData,
+  PostPictureData,
   PostUserItemData,
   PostSearchData,
   PostSearchItemData,
@@ -43,6 +44,33 @@ import type {
   AuthValidateData,
   AuthLoginData
 } from './ApiTypes';
+
+function mapPostPictures(thumbnails: Array<string>, originals?: Array<string>): Array<PostPictureData> {
+  let mapped: Array<PostPictureData> = [];
+  let originalList: Array<string> = originals !== undefined ? originals : [];
+  let i: number;
+  for (i = 0; i < thumbnails.length; i++) {
+    let thumbUrl: string = thumbnails[i];
+    let originalUrl: string = thumbUrl;
+    if (i < originalList.length && originalList[i] !== '') {
+      originalUrl = originalList[i];
+    }
+    mapped.push({
+      thumbnail: thumbUrl,
+      original: originalUrl
+    });
+  }
+  if (mapped.length === 0) {
+    for (i = 0; i < originalList.length; i++) {
+      let url: string = originalList[i];
+      mapped.push({
+        thumbnail: url,
+        original: url
+      });
+    }
+  }
+  return mapped;
+}
 
 // ---------- 原始响应类型（紧贴后端返回结构） ----------
 
@@ -245,6 +273,7 @@ interface PostListBriefRawItem {
   labels: Array<PostLabelRaw>;
   liked: boolean;
   likes?: number;
+  primaryPictures?: Array<string>;
   pictures: Array<string>;
   post_time: string;
   readings: number;
@@ -1123,7 +1152,10 @@ export async function getPostListBrief(
       replyCount: raw.replies !== undefined ? raw.replies : 0,
       favoriteCount: 0,
       createdAt: raw.post_time,
-      pictures: raw.pictures,
+      pictures: mapPostPictures(
+        raw.pictures !== undefined ? raw.pictures : [],
+        raw.primaryPictures !== undefined ? raw.primaryPictures : []
+      ),
       readings: raw.readings
     };
     items.push(item);
@@ -1202,8 +1234,6 @@ export async function getPostFavoriteList(
       avatar: raw.author.avatar,
       level: 0
     };
-    let pictures: Array<string> =
-      raw.primaryPictures !== undefined && raw.primaryPictures.length > 0 ? raw.primaryPictures : raw.pictures;
     let item: PostBriefItemData = {
       id: raw.id,
       title: raw.title,
@@ -1213,7 +1243,7 @@ export async function getPostFavoriteList(
       replyCount: raw.replies,
       favoriteCount: 0,
       createdAt: raw.post_time,
-      pictures: pictures,
+      pictures: mapPostPictures(raw.pictures, raw.primaryPictures),
       readings: raw.readings
     };
     list.push(item);
