@@ -20,6 +20,12 @@
     "installationFree": false,
     "pages": "$profile:main_pages",
     "routerMap": "$profile:router_map",
+    "metadata": [
+      {
+        "name": "avoid_cutout",
+        "value": "true"
+      }
+    ],
     "abilities": [
       {
         "name": "EntryAbility",
