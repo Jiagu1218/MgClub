@@ -15,7 +15,6 @@ import {
   getPostFavoriteList
 } from '../common/network';
 import { levelStore } from '../common/LevelStore';
-import { GenericBasicDataSource } from '../viewmodel/GenericBasicDataSource';
 import { HomePostItem } from '../components/HomePostItem';
 import { FollowUserCard } from '../components/FollowUserCard';
 
@@ -26,14 +25,10 @@ class UserProfileViewModel {
   @Trace userInfo?: UserBriefData;
   @Trace dataCount?: UserDataCountData;
   @Trace levelText: string = '';
-  @Trace postsDataSource: GenericBasicDataSource<PostUserItemData> =
-    new GenericBasicDataSource<PostUserItemData>();
-  @Trace followDataSource: GenericBasicDataSource<FollowUserBriefData> =
-    new GenericBasicDataSource<FollowUserBriefData>();
-  @Trace fansDataSource: GenericBasicDataSource<FollowUserBriefData> =
-    new GenericBasicDataSource<FollowUserBriefData>();
-  @Trace favoriteDataSource: GenericBasicDataSource<PostBriefItemData> =
-    new GenericBasicDataSource<PostBriefItemData>();
+  @Trace posts: Array<PostUserItemData> = [];
+  @Trace followList: Array<FollowUserBriefData> = [];
+  @Trace fansList: Array<FollowUserBriefData> = [];
+  @Trace favoriteList: Array<PostBriefItemData> = [];
   @Trace listLoading: boolean = false;
   @Trace listError: string = '';
 
@@ -73,10 +68,10 @@ class UserProfileViewModel {
           getFansList(uid, 1, 10),
           getPostFavoriteList(uid, 1, 10)
         ]);
-        this.postsDataSource.setData(results[0].list);
-        this.followDataSource.setData(results[1].list);
-        this.fansDataSource.setData(results[2].list);
-        this.favoriteDataSource.setData(results[3].list);
+        this.posts = results[0].list;
+        this.followList = results[1].list;
+        this.fansList = results[2].list;
+        this.favoriteList = results[3].list;
       } catch (e) {
         this.listError = e instanceof Error ? e.message : String(e);
       } finally {
@@ -185,35 +180,37 @@ export struct UserProfilePage {
                   Tabs() {
                     TabContent() {
                       List() {
-                        LazyForEach(this.vm.postsDataSource,
-                          (item: PostUserItemData) => {
+                        Repeat(this.vm.posts)
+                          .virtualScroll()
+                          .each((obj) => {
                             ListItem() {
                               HomePostItem({
                                 item: {
-                                  id: item.id,
-                                  title: item.title,
-                                  summary: item.summary,
+                                  id: obj.item.id,
+                                  title: obj.item.title,
+                                  summary: obj.item.summary,
                                   author: {
                                     uid: this.vm.userInfo!.uid,
                                     nickname: this.vm.userInfo!.nickname,
                                     avatar: this.vm.userInfo!.avatar,
                                     level: this.vm.userInfo!.level
                                   },
-                                  likeCount: item.likeCount,
-                                  replyCount: item.replyCount,
+                                  likeCount: obj.item.likeCount,
+                                  replyCount: obj.item.replyCount,
                                   favoriteCount: 0,
-                                  createdAt: item.createdAt,
+                                  createdAt: obj.item.createdAt,
                                   pictures: [],
-                                  readings: item.readings !== undefined ? item.readings : 0
+                                  readings: obj.item.readings !== undefined ? obj.item.readings : 0
                                 },
                                 isTop: false
                               })
+                                .reuse({
+                                  reuseId: (): string => {
+                                    return 'home_post_item';
+                                  }
+                                })
                             }
-                          },
-                          (item: PostUserItemData) => {
-                            return String(item.id);
-                          }
-                        )
+                          })
                       }
                       .width('100%')
                       .height(LayoutPolicy.matchParent)
@@ -222,16 +219,18 @@ export struct UserProfilePage {
 
                     TabContent() {
                       List() {
-                        LazyForEach(this.vm.followDataSource,
-                          (item: FollowUserBriefData) => {
+                        Repeat(this.vm.followList)
+                          .virtualScroll()
+                          .each((obj) => {
                             ListItem() {
-                              FollowUserCard({ item: item });
+                              FollowUserCard({ item: obj.item })
+                                .reuse({
+                                  reuseId: (): string => {
+                                    return 'follow_user_card';
+                                  }
+                                });
                             }
-                          },
-                          (item: FollowUserBriefData) => {
-                            return String(item.uid);
-                          }
-                        )
+                          })
                       }
                       .width('100%')
                       .height(LayoutPolicy.matchParent)
@@ -240,16 +239,18 @@ export struct UserProfilePage {
 
                     TabContent() {
                       List() {
-                        LazyForEach(this.vm.fansDataSource,
-                          (item: FollowUserBriefData) => {
+                        Repeat(this.vm.fansList)
+                          .virtualScroll()
+                          .each((obj) => {
                             ListItem() {
-                              FollowUserCard({ item: item });
+                              FollowUserCard({ item: obj.item })
+                                .reuse({
+                                  reuseId: (): string => {
+                                    return 'follow_user_card';
+                                  }
+                                });
                             }
-                          },
-                          (item: FollowUserBriefData) => {
-                            return String(item.uid);
-                          }
-                        )
+                          })
                       }
                       .width('100%')
                       .height(LayoutPolicy.matchParent)
@@ -258,16 +259,18 @@ export struct UserProfilePage {
 
                     TabContent() {
                       List() {
-                        LazyForEach(this.vm.favoriteDataSource,
-                          (item: PostBriefItemData) => {
+                        Repeat(this.vm.favoriteList)
+                          .virtualScroll()
+                          .each((obj) => {
                             ListItem() {
-                              HomePostItem({ item: item, isTop: false });
+                              HomePostItem({ item: obj.item, isTop: false })
+                                .reuse({
+                                  reuseId: (): string => {
+                                    return 'home_post_item';
+                                  }
+                                });
                             }
-                          },
-                          (item: PostBriefItemData) => {
-                            return String(item.id);
-                          }
-                        )
+                          })
                       }
                       .width('100%')
                       .height(LayoutPolicy.matchParent)

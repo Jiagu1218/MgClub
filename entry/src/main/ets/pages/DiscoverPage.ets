@@ -140,11 +140,16 @@ export struct DiscoverPage {
         createdAt: item.createdAt,
         pictures: [],
         readings: 0
+      },
+      onOpen: (id: number): void => {
+        let param: PostDetailRouteParams = { id: id };
+        this.pathStack.pushPathByName('PostDetailPage', param);
       }
     })
-      .onClick(() => {
-        let param: PostDetailRouteParams = { id: item.id };
-        this.pathStack.pushPathByName('PostDetailPage', param);
+      .reuse({
+        reuseId: (): string => {
+          return 'home_post_item';
+        }
       })
   }
 
@@ -205,17 +210,14 @@ export struct DiscoverPage {
         .alignItems(HorizontalAlign.Center)
       } else {
         List({ space: 6 }) {
-          LazyForEach(this.vm.userDataSource,
-            (item: UserBriefData, index: number) => {
+          Repeat(this.vm.userList)
+            .virtualScroll()
+            .each((obj) => {
               ListItem() {
-                this.buildUserItem(item);
+                this.buildUserItem(obj.item);
               }
-              .margin({ left: 12, right: 12, top: index === 0 ? 4 : 0, bottom: 4 })
-            },
-            (item: UserBriefData) => {
-              return '' + item.uid;
-            }
-          )
+              .margin({ left: 12, right: 12, top: obj.index === 0 ? 4 : 0, bottom: 4 })
+            })
         }
         .width('100%')
         .height('100%')
@@ -240,17 +242,14 @@ export struct DiscoverPage {
         .alignItems(HorizontalAlign.Center)
       } else {
         List({ space: 6 }) {
-          LazyForEach(this.vm.postDataSource,
-            (item: PostSearchItemData, index: number) => {
+          Repeat(this.vm.postList)
+            .virtualScroll()
+            .each((obj) => {
               ListItem() {
-                this.buildPostItem(item);
+                this.buildPostItem(obj.item);
               }
-              .margin({ left: 12, right: 12, top: index === 0 ? 4 : 0, bottom: 4 })
-            },
-            (item: PostSearchItemData) => {
-              return '' + item.id;
-            }
-          )
+              .margin({ left: 12, right: 12, top: obj.index === 0 ? 4 : 0, bottom: 4 })
+            })
         }
         .width('100%')
         .height('100%')
@@ -275,17 +274,14 @@ export struct DiscoverPage {
         .alignItems(HorizontalAlign.Center)
       } else {
         List({ space: 6 }) {
-          LazyForEach(this.vm.rankDataSource,
-            (item: ContributionRankItemData, index: number) => {
+          Repeat(this.vm.rankList)
+            .virtualScroll()
+            .each((obj) => {
               ListItem() {
-                this.buildRankItem(item, index);
+                this.buildRankItem(obj.item, obj.index);
               }
-              .margin({ left: 12, right: 12, top: index === 0 ? 4 : 0, bottom: 4 })
-            },
-            (item: ContributionRankItemData) => {
-              return '' + item.uid;
-            }
-          )
+              .margin({ left: 12, right: 12, top: obj.index === 0 ? 4 : 0, bottom: 4 })
+            })
         }
         .width('100%')
         .height('100%')

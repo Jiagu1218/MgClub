@@ -1,6 +1,5 @@
 import type { LoginPageRouteParams } from './LoginPage';
 import type { PostDetailRouteParams } from './PostDetailPage';
-import type { PostUserItemData, UserBriefData, PostBriefItemData } from '../common/network';
 import { ProfileViewModel } from '../viewmodel/ProfileViewModel';
 import { HomePostItem } from '../components/HomePostItem';
 import { FollowUserCard } from '../components/FollowUserCard';
@@ -143,39 +142,41 @@ export struct ProfilePage {
                 Tabs() {
                   TabContent() {
                     List() {
-                      LazyForEach(this.vm.postsDataSource,
-                        (item: PostUserItemData) => {
+                      Repeat(this.vm.posts)
+                        .virtualScroll()
+                        .each((obj) => {
                           ListItem() {
                             HomePostItem({
                               item: {
-                                id: item.id,
-                                title: item.title,
-                                summary: item.summary,
-                                author: item.author !== undefined ? item.author : {
+                                id: obj.item.id,
+                                title: obj.item.title,
+                                summary: obj.item.summary,
+                                author: obj.item.author !== undefined ? obj.item.author : {
                                   uid: this.vm.userInfo !== undefined ? this.vm.userInfo.uid : 0,
                                   nickname: this.vm.userInfo !== undefined ? this.vm.userInfo.nickname : '',
                                   avatar: this.vm.userInfo !== undefined ? this.vm.userInfo.avatar : '',
                                   level: this.vm.userInfo !== undefined ? this.vm.userInfo.level : 0
                                 },
-                                likeCount: item.likeCount,
-                                replyCount: item.replyCount,
+                                likeCount: obj.item.likeCount,
+                                replyCount: obj.item.replyCount,
                                 favoriteCount: 0,
-                                createdAt: item.createdAt,
-                                pictures: item.pictures !== undefined ? item.pictures : [],
-                                readings: item.readings !== undefined ? item.readings : 0
+                                createdAt: obj.item.createdAt,
+                                pictures: obj.item.pictures !== undefined ? obj.item.pictures : [],
+                                readings: obj.item.readings !== undefined ? obj.item.readings : 0
                               },
-                              isTop: false
-                            });
+                              isTop: false,
+                              onOpen: (id: number): void => {
+                                let param: PostDetailRouteParams = { id: id };
+                                this.pathStack.pushPathByName('PostDetailPage', param);
+                              }
+                            })
+                              .reuse({
+                                reuseId: (): string => {
+                                  return 'home_post_item';
+                                }
+                              });
                           }
-                          .onClick(() => {
-                            let param: PostDetailRouteParams = { id: item.id };
-                            this.pathStack.pushPathByName('PostDetailPage', param);
-                          })
-                        },
-                        (item: PostUserItemData) => {
-                          return String(item.id);
-                        }
-                      )
+                        })
                     }
                     .width('100%')
                     .height(LayoutPolicy.matchParent)
@@ -184,20 +185,24 @@ export struct ProfilePage {
 
                   TabContent() {
                     List() {
-                      LazyForEach(this.vm.followDataSource,
-                        (item: UserBriefData) => {
+                      Repeat(this.vm.followList)
+                        .virtualScroll()
+                        .each((obj) => {
                           ListItem() {
-                            FollowUserCard({ item: item });
+                            FollowUserCard({
+                              item: obj.item,
+                              onOpen: (uid: number): void => {
+                                let param: UserProfileRouteParams = { uid: uid };
+                                this.pathStack.pushPathByName('UserProfilePage', param);
+                              }
+                            })
+                              .reuse({
+                                reuseId: (): string => {
+                                  return 'follow_user_card';
+                                }
+                              });
                           }
-                          .onClick(() => {
-                            let param: UserProfileRouteParams = { uid: item.uid };
-                            this.pathStack.pushPathByName('UserProfilePage', param);
-                          })
-                        },
-                        (item: UserBriefData) => {
-                          return String(item.uid);
-                        }
-                      )
+                        })
                     }
                     .width('100%')
                     .height(LayoutPolicy.matchParent)
@@ -206,20 +211,24 @@ export struct ProfilePage {
 
                   TabContent() {
                     List() {
-                      LazyForEach(this.vm.fansDataSource,
-                        (item: UserBriefData) => {
+                      Repeat(this.vm.fansList)
+                        .virtualScroll()
+                        .each((obj) => {
                           ListItem() {
-                            FollowUserCard({ item: item });
+                            FollowUserCard({
+                              item: obj.item,
+                              onOpen: (uid: number): void => {
+                                let param: UserProfileRouteParams = { uid: uid };
+                                this.pathStack.pushPathByName('UserProfilePage', param);
+                              }
+                            })
+                              .reuse({
+                                reuseId: (): string => {
+                                  return 'follow_user_card';
+                                }
+                              });
                           }
-                          .onClick(() => {
-                            let param: UserProfileRouteParams = { uid: item.uid };
-                            this.pathStack.pushPathByName('UserProfilePage', param);
-                          })
-                        },
-                        (item: UserBriefData) => {
-                          return String(item.uid);
-                        }
-                      )
+                        })
                     }
                     .width('100%')
                     .height(LayoutPolicy.matchParent)
@@ -228,20 +237,25 @@ export struct ProfilePage {
 
                   TabContent() {
                     List() {
-                      LazyForEach(this.vm.favoriteDataSource,
-                        (item: PostBriefItemData) => {
+                      Repeat(this.vm.favoriteList)
+                        .virtualScroll()
+                        .each((obj) => {
                           ListItem() {
-                            HomePostItem({ item: item, isTop: false });
+                            HomePostItem({
+                              item: obj.item,
+                              isTop: false,
+                              onOpen: (id: number): void => {
+                                let param: PostDetailRouteParams = { id: id };
+                                this.pathStack.pushPathByName('PostDetailPage', param);
+                              }
+                            })
+                              .reuse({
+                                reuseId: (): string => {
+                                  return 'home_post_item';
+                                }
+                              });
                           }
-                          .onClick(() => {
-                            let param: PostDetailRouteParams = { id: item.id };
-                            this.pathStack.pushPathByName('PostDetailPage', param);
-                          })
-                        },
-                        (item: PostBriefItemData) => {
-                          return String(item.id);
-                        }
-                      )
+                        })
                     }
                     .width('100%')
                     .height(LayoutPolicy.matchParent)

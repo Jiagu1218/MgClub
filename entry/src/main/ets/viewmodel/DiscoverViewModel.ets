@@ -20,6 +20,9 @@ export class DiscoverViewModel {
   @Trace firstUserError: string = '';
   @Trace firstPostError: string = '';
   @Trace rankError: string = '';
+  @Trace userList: Array<UserBriefData> = [];
+  @Trace postList: Array<PostSearchItemData> = [];
+  @Trace rankList: Array<ContributionRankItemData> = [];
 
   @Trace userDataSource: GenericBasicDataSource<UserBriefData> =
     new GenericBasicDataSource<UserBriefData>();
@@ -30,6 +33,7 @@ export class DiscoverViewModel {
 
   async searchUserList(): Promise<void> {
     if (this.keyword === '') {
+      this.userList = [];
       this.userDataSource.setData([]);
       this.firstUserError = '';
       return;
@@ -38,6 +42,7 @@ export class DiscoverViewModel {
     this.firstUserError = '';
     try {
       let paged: PagedListData<UserBriefData> = await searchUser(this.keyword);
+      this.userList = paged.list;
       this.userDataSource.setData(paged.list);
     } catch (e) {
       this.firstUserError = '搜索用户失败，请稍后重试';
@@ -48,6 +53,7 @@ export class DiscoverViewModel {
 
   async searchPostList(): Promise<void> {
     if (this.keyword === '') {
+      this.postList = [];
       this.postDataSource.setData([]);
       this.firstPostError = '';
       return;
@@ -56,6 +62,7 @@ export class DiscoverViewModel {
     this.firstPostError = '';
     try {
       let data: PostSearchData = await searchPost(this.keyword, 0);
+      this.postList = data.list;
       this.postDataSource.setData(data.list);
     } catch (e) {
       this.firstPostError = '搜索帖子失败，请稍后重试';
@@ -69,6 +76,7 @@ export class DiscoverViewModel {
     this.rankError = '';
     try {
       let paged: PagedListData<ContributionRankItemData> = await getContributionRank(1, 50, sort);
+      this.rankList = paged.list;
       this.rankDataSource.setData(paged.list);
     } catch (e) {
       this.rankError = '加载贡献榜失败';

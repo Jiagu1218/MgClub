@@ -1,9 +1,20 @@
 import type { UserBriefData, LevelItemData } from '../common/network';
 import { levelStore } from '../common/LevelStore';
 
+@ReusableV2
 @ComponentV2
 export struct FollowUserCard {
   @Require @Param item: UserBriefData;
+  @Event onOpen: (uid: number) => void = (_uid: number): void => {};
+  @Local isPressed: boolean = false;
+
+  aboutToRecycle(): void {
+    this.isPressed = false;
+  }
+
+  aboutToReuse(): void {
+    this.isPressed = false;
+  }
 
   @Computed
   get levelText(): string {
@@ -99,7 +110,7 @@ export struct FollowUserCard {
     .padding({ top: 12, bottom: 12, left: 16, right: 16 })
     .alignItems(VerticalAlign.Center)
     // 与帖子卡片统一的纸质背景和圆角
-    .backgroundColor(0xFFFCFAF5)
+    .backgroundColor(this.isPressed ? 0xFFF2EFE8 : 0xFFFCFAF5)
     .borderRadius(14)
     .border({ width: 0.5, color: 0x11AAAAAA })
     // 双层阴影增强拟物立体感
@@ -114,6 +125,16 @@ export struct FollowUserCard {
       color: 0x22000000,
       offsetX: 0,
       offsetY: 2
+    })
+    .onTouch((event: TouchEvent) => {
+      if (event.type === TouchType.Down) {
+        this.isPressed = true;
+        return;
+      }
+      this.isPressed = false;
+    })
+    .onClick(() => {
+      this.onOpen(this.item.uid);
     });
   }
 }
