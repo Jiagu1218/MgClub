@@ -1,3 +1,4 @@
+import type { PostBriefItemData } from '../common/network';
 import { PostListViewModel } from '../viewmodel/PostListViewModel';
 import { HomePostItem } from '../components/HomePostItem';
 import type { PostDetailRouteParams } from './PostDetailPage';
@@ -143,8 +144,11 @@ export struct HomePage {
         } else {
           List({ space: 8 }) {
             Repeat(this.vm.postList)
+              .key((item: PostBriefItemData): string => {
+                return String(item.id);
+              })
               .virtualScroll()
-              .each((obj) => {
+              .each((obj: RepeatItem<PostBriefItemData>) => {
                 ListItem() {
                   HomePostItem({
                     item: obj.item,

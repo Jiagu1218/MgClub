@@ -211,8 +211,11 @@ export struct DiscoverPage {
       } else {
         List({ space: 6 }) {
           Repeat(this.vm.userList)
+            .key((item: UserBriefData): string => {
+              return String(item.uid);
+            })
             .virtualScroll()
-            .each((obj) => {
+            .each((obj: RepeatItem<UserBriefData>) => {
               ListItem() {
                 this.buildUserItem(obj.item);
               }
@@ -243,8 +246,11 @@ export struct DiscoverPage {
       } else {
         List({ space: 6 }) {
           Repeat(this.vm.postList)
+            .key((item: PostSearchItemData): string => {
+              return String(item.id);
+            })
             .virtualScroll()
-            .each((obj) => {
+            .each((obj: RepeatItem<PostSearchItemData>) => {
               ListItem() {
                 this.buildPostItem(obj.item);
               }
@@ -275,8 +281,11 @@ export struct DiscoverPage {
       } else {
         List({ space: 6 }) {
           Repeat(this.vm.rankList)
+            .key((item: ContributionRankItemData): string => {
+              return String(item.uid);
+            })
             .virtualScroll()
-            .each((obj) => {
+            .each((obj: RepeatItem<ContributionRankItemData>) => {
               ListItem() {
                 this.buildRankItem(obj.item, obj.index);
               }

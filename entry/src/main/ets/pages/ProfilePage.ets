@@ -1,5 +1,6 @@
 import type { LoginPageRouteParams } from './LoginPage';
 import type { PostDetailRouteParams } from './PostDetailPage';
+import type { PostUserItemData, UserBriefData, PostBriefItemData } from '../common/network';
 import { ProfileViewModel } from '../viewmodel/ProfileViewModel';
 import { HomePostItem } from '../components/HomePostItem';
 import { FollowUserCard } from '../components/FollowUserCard';
@@ -143,8 +144,11 @@ export struct ProfilePage {
                   TabContent() {
                     List() {
                       Repeat(this.vm.posts)
+                        .key((item: PostUserItemData): string => {
+                          return String(item.id);
+                        })
                         .virtualScroll()
-                        .each((obj) => {
+                        .each((obj: RepeatItem<PostUserItemData>) => {
                           ListItem() {
                             HomePostItem({
                               item: {
@@ -186,8 +190,11 @@ export struct ProfilePage {
                   TabContent() {
                     List() {
                       Repeat(this.vm.followList)
+                        .key((item: UserBriefData): string => {
+                          return String(item.uid);
+                        })
                         .virtualScroll()
-                        .each((obj) => {
+                        .each((obj: RepeatItem<UserBriefData>) => {
                           ListItem() {
                             FollowUserCard({
                               item: obj.item,
@@ -212,8 +219,11 @@ export struct ProfilePage {
                   TabContent() {
                     List() {
                       Repeat(this.vm.fansList)
+                        .key((item: UserBriefData): string => {
+                          return String(item.uid);
+                        })
                         .virtualScroll()
-                        .each((obj) => {
+                        .each((obj: RepeatItem<UserBriefData>) => {
                           ListItem() {
                             FollowUserCard({
                               item: obj.item,
@@ -238,8 +248,11 @@ export struct ProfilePage {
                   TabContent() {
                     List() {
                       Repeat(this.vm.favoriteList)
+                        .key((item: PostBriefItemData): string => {
+                          return String(item.id);
+                        })
                         .virtualScroll()
-                        .each((obj) => {
+                        .each((obj: RepeatItem<PostBriefItemData>) => {
                           ListItem() {
                             HomePostItem({
                               item: obj.item,

@@ -181,8 +181,11 @@ export struct UserProfilePage {
                     TabContent() {
                       List() {
                         Repeat(this.vm.posts)
+                          .key((item: PostUserItemData): string => {
+                            return String(item.id);
+                          })
                           .virtualScroll()
-                          .each((obj) => {
+                          .each((obj: RepeatItem<PostUserItemData>) => {
                             ListItem() {
                               HomePostItem({
                                 item: {
@@ -220,8 +223,11 @@ export struct UserProfilePage {
                     TabContent() {
                       List() {
                         Repeat(this.vm.followList)
+                          .key((item: FollowUserBriefData): string => {
+                            return String(item.uid);
+                          })
                           .virtualScroll()
-                          .each((obj) => {
+                          .each((obj: RepeatItem<FollowUserBriefData>) => {
                             ListItem() {
                               FollowUserCard({ item: obj.item })
                                 .reuse({
@@ -240,8 +246,11 @@ export struct UserProfilePage {
                     TabContent() {
                       List() {
                         Repeat(this.vm.fansList)
+                          .key((item: FollowUserBriefData): string => {
+                            return String(item.uid);
+                          })
                           .virtualScroll()
-                          .each((obj) => {
+                          .each((obj: RepeatItem<FollowUserBriefData>) => {
                             ListItem() {
                               FollowUserCard({ item: obj.item })
                                 .reuse({
@@ -260,8 +269,11 @@ export struct UserProfilePage {
                     TabContent() {
                       List() {
                         Repeat(this.vm.favoriteList)
+                          .key((item: PostBriefItemData): string => {
+                            return String(item.id);
+                          })
                           .virtualScroll()
-                          .each((obj) => {
+                          .each((obj: RepeatItem<PostBriefItemData>) => {
                             ListItem() {
                               HomePostItem({ item: obj.item, isTop: false })
                                 .reuse({
