@@ -57,7 +57,7 @@ export function ProfilePostItem(item: PostBriefItemData) {
         Text('阅')
           .fontSize(11)
           .fontColor(0xFFBBBBBB);
-        Text(' ' + String(item.readings))
+        Text(' ' + item.readings)
           .fontSize(11)
           .fontColor(0xFF999999);
       }
@@ -67,7 +67,7 @@ export function ProfilePostItem(item: PostBriefItemData) {
           .fontSize(11)
           .fontColor(0xFFBBBBBB)
           .margin({ left: 12 });
-        Text(' ' + String(item.replyCount))
+        Text(' ' + item.replyCount)
           .fontSize(11)
           .fontColor(0xFF999999);
       }
@@ -77,7 +77,7 @@ export function ProfilePostItem(item: PostBriefItemData) {
           .fontSize(11)
           .fontColor(0xFFBBBBBB)
           .margin({ left: 12 });
-        Text(' ' + String(item.likeCount))
+        Text(' ' + item.likeCount)
           .fontSize(11)
           .fontColor(0xFF999999);
       }
@@ -150,7 +150,7 @@ export function ProfileUserPostItem(item: PostUserItemData) {
 export function ProfileFavoritePostItem(item: PostBriefItemData) {
   Row() {
     if (item.pictures.length > 0) {
-      Image(item.pictures[0])
+      Image(item.pictures[0].thumbnail)
         .width(64)
         .height(64)
         .borderRadius(8)
@@ -169,7 +169,7 @@ export function ProfileFavoritePostItem(item: PostBriefItemData) {
         .textOverflow({ overflow: TextOverflow.Ellipsis })
         .margin({ top: 4 });
       Row() {
-        Text('阅读 ' + String(item.readings))
+        Text('阅读 ' + item.readings)
           .fontSize(11)
           .fontColor(0xFF999999);
         Text(' · ')
